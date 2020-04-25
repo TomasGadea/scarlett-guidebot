@@ -6,3 +6,6 @@ import numpy as np
 # aqui manda mi polla
 
 # afegeixo algo
+# tres més quatre
+
+#klk
