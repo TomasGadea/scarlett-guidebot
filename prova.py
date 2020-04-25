@@ -3,6 +3,9 @@ import numpy as np
 
 # canvi del tt tomas
 
+# aqui manda mi polla
+
+# afegeixo algo
 # tres més quatre
 
 #klk
