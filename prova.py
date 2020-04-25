@@ -3,4 +3,6 @@ import numpy as np
 
 # canvi del tt tomas
 
-# tres més quatre 
+# tres més quatre
+
+#klk
