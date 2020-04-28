@@ -23,7 +23,7 @@ def save_graph(graph, filename):
 
 def load_graph(filename):
     """ Returns a graph read from a pickle file."""
-    f = open('filename', 'rb')
+    f = open(filename, 'rb')
     graph = pickle.load(f)
     f.close()
     return graph
@@ -31,8 +31,9 @@ def load_graph(filename):
 
 def print_graph(graph):
     """ Represents graphicaly the graph passed as parameter and summarizes its information. """
-    nx.draw(graph, with_labels=True, font_weight='bold')
     print(nx.info(graph))
+    ox.plot_graph(graph)
+    plt.show()
 
 
 def get_directions(graph, source_location, destination_location):
