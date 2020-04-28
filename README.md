@@ -6,3 +6,14 @@ AP2 project (GCED)
 
 - `autopep8` + `<filename>` : doesn't change the file, just outputs the autopep8 version in terminal.
 - `autopep8 --in-place --aggressive --aggressive` + `<filename>` :  changes the file, notice `--in-place`.
+
+## links
+- [Lliçons de bots de Telegram](https://lliçons.jutge.org/python/telegram.html)
+
+- [Lliçons de fitxers en Python](https://lliçons.jutge.org/python/fitxers-i-formats.html)
+
+- [Tutorial de NetworkX](https://networkx.github.io/documentation/stable/tutorial.html)
+
+- [Tutorial d'OSMnx](https://geoffboeing.com/2016/11/osmnx-python-street-networks/)
+
+- [DON'T CLICK !!!](https://www.youtube.com/watch?v=Qvi8_rQxcRg)
