@@ -43,5 +43,31 @@ def get_directions(graph, source_location, destination_location):
 
 def plot_directions(graph, source_location, destination_location, directions,
                     filename, width=400, height=400):
-    """ ... """
-    pass
+    """ Plots the route from source_location to destination_location described
+        by directions in a file named filename.png """
+    m = StaticMap(width, height)
+    for node in directions:
+        src = (node['src'][1], node['src'][0])
+        dst = (node['mid'][1], node['mid'][0])
+        coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
+
+        if node['current_name'] is None:
+            if node['next_name'] is not None:
+                marker = CircleMarker(src, 'blue', 20)
+                line = Line(coordinates, 'blue', 4)
+            else:
+                marker = CircleMarker(src, 'red', 10)
+                line = Line(coordinates, 'blue', 4)
+        else:
+            marker = CircleMarker(src, 'red', 10)
+            line = Line(coordinates, 'red', 4)
+
+        m.add_marker(marker)
+        m.add_line(line)
+
+        if node['dst'] is None:
+            marker = CircleMarker(dst, 'blue', 20)
+            m.add_marker(marker)
+
+    image = m.render()
+    image.save(filename+'.png')
