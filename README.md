@@ -16,4 +16,7 @@ AP2 project (GCED)
 
 - [Tutorial d'OSMnx](https://geoffboeing.com/2016/11/osmnx-python-street-networks/)
 
+- [github Jordi Petit](https://github.com/jordi-petit/ap2-guidebot)
+
 - [DON'T CLICK !!!](https://www.youtube.com/watch?v=Qvi8_rQxcRg)
+
