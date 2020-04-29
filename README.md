@@ -18,4 +18,4 @@ AP2 project (GCED)
 
 - [github Jordi Petit](https://github.com/jordi-petit/ap2-guidebot)
 
-- [HELL PLEASE IT'S BECOMING SERIOUS, DON'T CLICK !!!](https://www.youtube.com/watch?v=KpXsfimrkFo)
+- [† † †](https://www.youtube.com/watch?v=sTyZu9_6T0w&t=26s)
