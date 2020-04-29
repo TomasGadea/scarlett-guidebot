@@ -41,13 +41,29 @@ def print_graph(graph):
 
 def get_directions(graph, source_location, destination_location):
     """ ... """
-
-    # it's ony an structure
     src = closest_node_of(source_location)
     dst = closest_node_of(destination_location)
     graph.add_edge_from([(source_location, src), (dst, destination_location)])
-    nx.graph.shortest_path(source_location, destination_location)
-    #
+    shortest_path = nx.graph.shortest_path(source_location, destination_location)
+    directions = from_path_to_directions(graph, shortest_path)
+
+
+def from_path_to_directions(graph, shortest_path):
+    """ ... """
+    directions = []
+    for index, node1 in enumerate(shortest_path):
+        for node2, info2 in graph.adj[node1].items():
+            if node2 == shortest_path[index+1]:
+                edge = info2[0]
+                dic = {'angle': edge['bearing'],
+                       'current_name': ,
+                       'dst': ,
+                       'length': ,
+                       'mid': ,
+                       'next_name': ,
+                       'src': }
+                directions.append(dic)
+    return directions
 
 
 def plot_directions(graph, source_location, destination_location, directions,
@@ -55,13 +71,13 @@ def plot_directions(graph, source_location, destination_location, directions,
     """ Plots the route from source_location to destination_location described
         by directions in a file named filename.png """
     m = StaticMap(width, height)
-    for node in directions:
-        src = (node['src'][1], node['src'][0])
-        dst = (node['mid'][1], node['mid'][0])
+    for tram in directions:
+        src = (tram['src'][1], tram['src'][0])
+        dst = (tram['mid'][1], tram['mid'][0])
         coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
 
-        if node['current_name'] is None:
-            if node['next_name'] is not None:
+        if tram['current_name'] is None:
+            if tram['next_name'] is not None:
                 marker = CircleMarker(src, 'blue', 20)
                 line = Line(coordinates, 'blue', 4)
             else:
@@ -74,7 +90,7 @@ def plot_directions(graph, source_location, destination_location, directions,
         m.add_marker(marker)
         m.add_line(line)
 
-        if node['dst'] is None:
+        if tram['dst'] is None:
             marker = CircleMarker(dst, 'blue', 20)
             m.add_marker(marker)
 
