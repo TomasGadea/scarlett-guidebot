@@ -41,13 +41,29 @@ def print_graph(graph):
 
 def get_directions(graph, source_location, destination_location):
     """ ... """
-
-    # it's ony an structure
     src = closest_node_of(source_location)
     dst = closest_node_of(destination_location)
     graph.add_edge_from([(source_location, src), (dst, destination_location)])
-    nx.graph.shortest_path(source_location, destination_location)
-    #
+    shortest_path = nx.graph.shortest_path(source_location, destination_location)
+    directions = from_path_to_directions(graph, shortest_path)
+
+
+def from_path_to_directions(graph, shortest_path):
+    """ ... """
+    directions = []
+    for index, node1 in enumerate(shortest_path):
+        for node2, info2 in graph.adj[node1].items():
+            if node2 == shortest_path[index+1]:
+                edge = info2[0]
+                dic = {'angle': edge['bearing'],
+                       'current_name': ,
+                       'dst': ,
+                       'length': ,
+                       'mid': ,
+                       'next_name': ,
+                       'src': }
+                directions.append(dic)
+    return directions
 
 
 def plot_directions(graph, source_location, destination_location, directions,
