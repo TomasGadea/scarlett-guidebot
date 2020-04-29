@@ -38,7 +38,13 @@ def print_graph(graph):
 
 def get_directions(graph, source_location, destination_location):
     """ ... """
-    pass
+
+    # it's ony an structure
+    src = closest_node_of(source_location)
+    dst = closest_node_of(destination_location)
+    graph.add_edge_from([(source_location, src), (dst, destination_location)])
+    nx.graph.shortest_path(source_location, destination_location)
+    #
 
 
 def plot_directions(graph, source_location, destination_location, directions,
