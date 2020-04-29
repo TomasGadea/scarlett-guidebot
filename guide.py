@@ -1,7 +1,7 @@
 import networkx as nx
 import osmnx as ox
 from haversine import haversine
-from staticmap import StaticMap, Line, IconMarker
+from staticmap import StaticMap, Line, CircleMarker
 import pickle
 import matplotlib.pyplot as plt
 
@@ -79,4 +79,4 @@ def plot_directions(graph, source_location, destination_location, directions,
             m.add_marker(marker)
 
     image = m.render()
-    image.save(filename+'.png')
+    image.save(filename + '.png')
