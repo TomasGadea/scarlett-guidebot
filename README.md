@@ -18,4 +18,6 @@ AP2 project (GCED)
 
 - [github Jordi Petit](https://github.com/jordi-petit/ap2-guidebot)
 
+- [staticmap github](https://github.com/komoot/staticmap/blob/master/README.md)
+
 - [† † †](https://www.youtube.com/watch?v=sTyZu9_6T0w)
