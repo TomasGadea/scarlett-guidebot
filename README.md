@@ -20,4 +20,6 @@ AP2 project (GCED)
 
 - [staticmap github](https://github.com/komoot/staticmap/blob/master/README.md)
 
+- [osmnx nearest nodes/edges](https://osmnx.readthedocs.io/en/stable/osmnx.html#osmnx.utils.get_nearest_node)
+
 - [† † †](https://www.youtube.com/watch?v=sTyZu9_6T0w)
