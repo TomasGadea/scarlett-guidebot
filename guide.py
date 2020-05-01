@@ -45,25 +45,30 @@ def get_directions(graph, source_location, destination_location):
     dst = closest_node_of(destination_location)
     graph.add_edge_from([(source_location, src), (dst, destination_location)])
     shortest_path = nx.graph.shortest_path(source_location, destination_location)
-    directions = from_path_to_directions(graph, shortest_path)
+    directions = osmnx.geo_utils.get_route_edge_attributes(graph, shortest_path)
 
 
 def from_path_to_directions(graph, shortest_path):
-    """ ... """
+    """ Given a list of nodes shortest_path of the graph graph, returns a route
+       that represents the shortest_path. """
     directions = []
     for index, node1 in enumerate(shortest_path):
-        for node2, info2 in graph.adj[node1].items():
-            if node2 == shortest_path[index+1]:
-                edge = info2[0]
-                dic = {'angle': edge['bearing'],
-                       'current_name': ,
-                       'dst': ,
-                       'length': ,
-                       'mid': ,
-                       'next_name': ,
-                       'src': }
-                directions.append(dic)
+        directions.append([tram(node1,node2, info2[0]) for node2, info2
+                           in graph.adj[node1].items()
+                           if node2 == shortest_path[index+1]])
     return directions
+
+
+def tram(node1, node2, edge):
+    """ ... """
+    dic = {'angle': edge['bearing'],
+           'current_name': edge['name'],
+           'dst': ,
+           'length': edge['length'],
+           'mid': (node2['y'], node2['x']),
+           'next_name': ,
+           'src': (node1['y'], node1['x'])}
+    return dic
 
 
 def plot_directions(graph, source_location, destination_location, directions,
