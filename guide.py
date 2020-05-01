@@ -9,27 +9,24 @@ import matplotlib.pyplot as plt
 def download_graph(place):
     """ Downloads a graph from OpenStreetMap and returns it. Parameter is a
         string with the name of the location. """
+
     graph = ox.graph_from_place(
         place, network_type='drive', simplify=True)
     ox.geo_utils.add_edge_bearings(graph)
 
     for node1, info1 in graph.nodes.items():
-    print(node1, info1)
-    # for each adjacent node and its information...
-    for node2, info2 in graph.adj[node1].items():
-        print('    ', node2)
-        # osmnx graphs are multigraphs, but we will just consider their first edge
-        edge = info2[0]
-        # we remove geometry information from edges because we don't need it and take a lot of space
-        if 'geometry' in edge:
-            del(edge['geometry'])
-        print('        ', edge)
+        for node2, info2 in graph.adj[node1].items():
+            edge = info2[0]
+            if 'geometry' in edge:
+                del(edge['geometry'])
+
     return graph
 
 
 def save_graph(graph, filename):
     """ Saves a graph (passed as first parameter) into a pickle file (named as
         second parameter). """
+
     f = open(filename, 'wb')
     pickle.dump(graph, f)
     f.close()
@@ -37,6 +34,7 @@ def save_graph(graph, filename):
 
 def load_graph(filename):
     """ Returns a graph read from a pickle file."""
+
     f = open(filename, 'rb')
     graph = pickle.load(f)
     f.close()
@@ -46,19 +44,34 @@ def load_graph(filename):
 def print_graph(graph):
     """ Represents graphicaly the graph passed as parameter and summarizes its
         information. """
+
     print(nx.info(graph))
+
+    for node1, info1 in graph.nodes.items():
+        print(node1, info1)
+        for node2, info2 in graph.adj[node1].items():
+            print('    ', node2)
+            edge = info2[0]
+            print('        ', edge)
+
     ox.plot_graph(graph)
     plt.show()
 
 
 def get_directions(graph, source_location, destination_location):
-    """ ... """
-    src = closest_node_to(source_location)
-    dst = closest_node_to(destination_location)
+    """ Return a list of maps. Each map conatins info about the section of the path (see from_path_to_directions). """
+    src = closest_node_to(graph, source_location)
+    dst = closest_node_to(graph, destination_location)
     graph.add_edge_from([(source_location, src), (dst, destination_location)])
     shortest_path = nx.graph.shortest_path(
         source_location, destination_location)
-    directions = from_path_to_directions(graph, shortest_path)
+    return from_path_to_directions(graph, shortest_path)
+
+
+def closest_node_to(graph, source_location):
+    """ Return the graph node nearest to some specified source_location: (lat, lng) """
+
+    return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
 def from_path_to_directions(graph, shortest_path):
@@ -69,12 +82,12 @@ def from_path_to_directions(graph, shortest_path):
             if node2 == shortest_path[index+1]:
                 edge = info2[0]
                 dic = {'angle': edge['bearing'],
-                       'current_name':,
-                       'dst':,
-                       'length':,
-                       'mid':,
-                       'next_name':,
-                       'src':}
+                       'current_name': ,
+                       'dst': ,
+                       'length': ,
+                       'mid': ,
+                       'next_name': ,
+                       'src': }
                 directions.append(dic)
     return directions
 
