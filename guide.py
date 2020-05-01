@@ -12,6 +12,18 @@ def download_graph(place):
     graph = ox.graph_from_place(
         place, network_type='drive', simplify=True)
     ox.geo_utils.add_edge_bearings(graph)
+
+    for node1, info1 in graph.nodes.items():
+    print(node1, info1)
+    # for each adjacent node and its information...
+    for node2, info2 in graph.adj[node1].items():
+        print('    ', node2)
+        # osmnx graphs are multigraphs, but we will just consider their first edge
+        edge = info2[0]
+        # we remove geometry information from edges because we don't need it and take a lot of space
+        if 'geometry' in edge:
+            del(edge['geometry'])
+        print('        ', edge)
     return graph
 
 
@@ -41,10 +53,11 @@ def print_graph(graph):
 
 def get_directions(graph, source_location, destination_location):
     """ ... """
-    src = closest_node_of(source_location)
-    dst = closest_node_of(destination_location)
+    src = closest_node_to(source_location)
+    dst = closest_node_to(destination_location)
     graph.add_edge_from([(source_location, src), (dst, destination_location)])
-    shortest_path = nx.graph.shortest_path(source_location, destination_location)
+    shortest_path = nx.graph.shortest_path(
+        source_location, destination_location)
     directions = from_path_to_directions(graph, shortest_path)
 
 
@@ -56,12 +69,12 @@ def from_path_to_directions(graph, shortest_path):
             if node2 == shortest_path[index+1]:
                 edge = info2[0]
                 dic = {'angle': edge['bearing'],
-                       'current_name': ,
-                       'dst': ,
-                       'length': ,
-                       'mid': ,
-                       'next_name': ,
-                       'src': }
+                       'current_name':,
+                       'dst':,
+                       'length':,
+                       'mid':,
+                       'next_name':,
+                       'src':}
                 directions.append(dic)
     return directions
 
