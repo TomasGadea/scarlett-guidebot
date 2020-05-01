@@ -61,12 +61,17 @@ def print_graph(graph):
 def get_directions(graph, source_location, destination_location):
     """ Return a list of maps. Each map conatins info about the section of the path (see from_path_to_directions). """
     src = closest_node_to(graph, source_location)
+    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
+    print(src_coord)
     dst = closest_node_to(graph, destination_location)
-    graph.add_edge_from([(source_location, src), (dst, destination_location)])
-    shortest_path = nx.graph.shortest_path(
-        source_location, destination_location)
-    return from_path_to_directions(graph, shortest_path)
+    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
+    print(dst_coord)
 
+    graph.add_edges_from([(source_location, src, {'length': haversine(source_location, src_coord, unit='m')}), (dst, destination_location, {'length': haversine(destination_location, dst_coord, unit='m')})])
+    shortest_path = nx.shortest_path(graph, source_location,
+                                     destination_location)
+    route = from_path_to_directions(graph, shortest_path)
+    return route
 
 def closest_node_to(graph, source_location):
     """ Return the graph node nearest to some specified source_location: (lat, lng) """
@@ -76,7 +81,9 @@ def closest_node_to(graph, source_location):
 
 def from_path_to_directions(graph, shortest_path):
     """ ... """
-    directions = []
+    directions = ox.geo_utils.get_route_edge_attributes(graph, shortest_path)
+
+
     for index, node1 in enumerate(shortest_path):
         for node2, info2 in graph.adj[node1].items():
             if node2 == shortest_path[index+1]:
