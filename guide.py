@@ -66,8 +66,12 @@ def get_directions(graph, source_location, destination_location):
     dst = closest_node_to(graph, destination_location)
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
 
-    graph.add_edges_from([(source_location, src, {'length': haversine(source_location, src_coord, unit='m')}), (
-        dst, destination_location, {'length': haversine(destination_location, dst_coord, unit='m')})])
+    src_length = haversine(source_location, src_coord, unit='m')
+    dst_length = haversine(destination_location, dst_coord, unit='m')
+
+    graph.add_edges_from([(source_location, src, {'length': src_length}),
+                          (dst, destination_location, {'length': dst_length})])
+
     shortest_path = nx.shortest_path(graph, source_location,
                                      destination_location)
     route = from_path_to_directions(graph, shortest_path)
