@@ -62,10 +62,8 @@ def get_directions(graph, source_location, destination_location):
     """ Return a list of maps. Each map conatins info about the section of the path (see from_path_to_directions). """
     src = closest_node_to(graph, source_location)
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
-    print(src_coord)
     dst = closest_node_to(graph, destination_location)
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
-    print(dst_coord)
 
     graph.add_edges_from([(source_location, src, {'length': haversine(source_location, src_coord, unit='m')}), (dst, destination_location, {'length': haversine(destination_location, dst_coord, unit='m')})])
     shortest_path = nx.shortest_path(graph, source_location,
@@ -79,28 +77,58 @@ def closest_node_to(graph, source_location):
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
-def from_path_to_directions(graph, shortest_path):
+def from_path_to_directions(graph, sp_nodes):
     """ ... """
-    directions = ox.geo_utils.get_route_edge_attributes(graph, shortest_path)
-
-
-    for index, node1 in enumerate(shortest_path):
-        directions.append([tram(node1,node2, info2[0]) for node2, info2
-                           in graph.adj[node1].items()
-                           if node2 == shortest_path[index+1]])
+    sp_edges = ox.geo_utils.get_route_edge_attributes(graph, sp_nodes)
+    sp_nodes = [id_to_coord_tuple(graph, node) for node in sp_nodes]
+    n = len(sp_nodes)
+    directions = [tram(graph, sp_edges, sp_nodes, i, n) for i, node
+                  in enumerate(sp_nodes) if i < n - 1]
     return directions
 
 
-def tram(node1, node2, edge):
+def tram(graph, sp_edges, sp_nodes, i, n):
     """ ... """
-    dic = {'angle': edge['bearing'],
-           'current_name': edge['name'],
-           'dst': ,
-           'length': edge['length'],
-           'mid': (node2['y'], node2['x']),
-           'next_name': ,
-           'src': (node1['y'], node1['x'])}
-    return dic
+    tram = {'angle': angle(sp_edges, i, n),
+            'src': (sp_nodes[i][0], sp_nodes[i][1]),
+            'mid': (sp_nodes[i + 1][0], sp_nodes[i + 1][1])}
+
+    if i + 2 <= n - 1:
+        tram['dst'] = (sp_nodes[i + 2][0], sp_nodes[i + 2][1])
+
+        if 'name' in sp_edges[i + 1]:
+            tram['next_name'] = sp_edges[i + 1]['name']
+        else:
+            tram['next_name'] = None
+    else:
+        tram['dst'], tram['next_name'] = None, None
+
+    if 'name' in sp_edges[i]:
+        tram['current_name'] = sp_edges[i]['name']
+    else:
+        tram['current_name'] = None
+
+    if 'length' in sp_edges[i]:
+        tram['length'] = sp_edges[i]['length']
+    else:
+        tram['length'] = None
+
+    return tram
+
+
+def id_to_coord_tuple(graph, node):
+    """ Given a graph and a node (in form of coordinates or id) returns the geo coordinates of that node in form of a tuple """
+    if not isinstance(node, tuple):
+        return (graph.nodes[node]['y'], graph.nodes[node]['x'])
+    else:
+        return node
+
+
+def angle(sp_edges, i, n):
+    """ Returns the angle of edges i and i + 1 in sp_edges if we can calculate it. """
+    if i >= n-1 or not 'bearing' in sp_edges[i] or not 'bearing' in sp_edges[i + 1]:
+        return None
+    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']
 
 
 def plot_directions(graph, source_location, destination_location, directions,
