@@ -78,42 +78,42 @@ def closest_node_to(graph, source_location):
 
 
 def from_path_to_directions(graph, sp_nodes):
-    """ ... """
+    """ Returns the transformation from a path (represented as a list of nodes) to directions in their correct format """
     sp_edges = ox.geo_utils.get_route_edge_attributes(graph, sp_nodes)
     sp_nodes = [id_to_coord_tuple(graph, node) for node in sp_nodes]
     n = len(sp_nodes)
-    directions = [tram(graph, sp_edges, sp_nodes, i, n) for i, node
+    directions = [section(graph, sp_edges, sp_nodes, i, n) for i, node
                   in enumerate(sp_nodes) if i < n - 1]
     return directions
 
 
-def tram(graph, sp_edges, sp_nodes, i, n):
-    """ ... """
-    tram = {'angle': angle(sp_edges, i, n),
+def section(graph, sp_edges, sp_nodes, i, n):
+    """ From a list that represents a path of n nodes and its relative in edges returns the section that starts in the node i of the list """
+    section = {'angle': angle(sp_edges, i, n),
             'src': (sp_nodes[i][0], sp_nodes[i][1]),
             'mid': (sp_nodes[i + 1][0], sp_nodes[i + 1][1])}
 
     if i + 2 <= n - 1:
-        tram['dst'] = (sp_nodes[i + 2][0], sp_nodes[i + 2][1])
+        section['dst'] = (sp_nodes[i + 2][0], sp_nodes[i + 2][1])
 
         if 'name' in sp_edges[i + 1]:
-            tram['next_name'] = sp_edges[i + 1]['name']
+            section['next_name'] = sp_edges[i + 1]['name']
         else:
-            tram['next_name'] = None
+            section['next_name'] = None
     else:
-        tram['dst'], tram['next_name'] = None, None
+        section['dst'], section['next_name'] = None, None
 
     if 'name' in sp_edges[i]:
-        tram['current_name'] = sp_edges[i]['name']
+        section['current_name'] = sp_edges[i]['name']
     else:
-        tram['current_name'] = None
+        section['current_name'] = None
 
     if 'length' in sp_edges[i]:
-        tram['length'] = sp_edges[i]['length']
+        section['length'] = sp_edges[i]['length']
     else:
-        tram['length'] = None
+        section['length'] = None
 
-    return tram
+    return section
 
 
 def id_to_coord_tuple(graph, node):
@@ -136,28 +136,34 @@ def plot_directions(graph, source_location, destination_location, directions,
     """ Plots the route from source_location to destination_location described
         by directions in a file named filename.png """
     m = StaticMap(width, height)
-    for tram in directions:
-        src = (tram['src'][1], tram['src'][0])
-        dst = (tram['mid'][1], tram['mid'][0])
-        coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
+    for section in directions:
 
-        if tram['current_name'] is None:
-            if tram['next_name'] is not None:
-                marker = CircleMarker(src, 'blue', 20)
-                line = Line(coordinates, 'blue', 4)
-            else:
-                marker = CircleMarker(src, 'red', 10)
-                line = Line(coordinates, 'blue', 4)
-        else:
-            marker = CircleMarker(src, 'red', 10)
-            line = Line(coordinates, 'red', 4)
+        marker, line = marker_and_line_depending_on_section_type(section)
 
         m.add_marker(marker)
         m.add_line(line)
 
-        if tram['dst'] is None:
-            marker = CircleMarker(dst, 'blue', 20)
+        if section['dst'] is None:
+            marker = CircleMarker((section['mid'][1], section['mid'][0]), 'blue', 20)
             m.add_marker(marker)
 
     image = m.render()
     image.save(filename + '.png')
+
+def marker_and_line_depending_on_section_type(section):
+    """ Returns one line and marker with diferent caracteristics depending on the type of the section given """
+    src = (section['src'][1], section['src'][0])
+    dst = (section['mid'][1], section['mid'][0])
+    coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
+
+    if section['current_name'] is None:
+        if section['next_name'] is not None:
+            marker = CircleMarker(src, 'blue', 20)
+            line = Line(coordinates, 'blue', 4)
+        else:
+            marker = CircleMarker(src, 'red', 10)
+            line = Line(coordinates, 'blue', 4)
+    else:
+        marker = CircleMarker(src, 'red', 10)
+        line = Line(coordinates, 'red', 4)
+    return marker, line
