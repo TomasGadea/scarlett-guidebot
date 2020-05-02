@@ -85,7 +85,9 @@ def closest_node_to(graph, source_location):
 
 
 def from_path_to_directions(graph, sp_nodes):
-    """ ... """
+    """ Given a list of nodes in the shortest path (sp_nodes)
+        returns the path in a directions format (angle, src, name, mid, ...) """
+
     sp_edges = ox.geo_utils.get_route_edge_attributes(graph, sp_nodes)
     sp_nodes = [id_to_coord_tuple(graph, node) for node in sp_nodes]
     n = len(sp_nodes)
