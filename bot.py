@@ -1,11 +1,11 @@
 from telegram.ext import Updater, CommandHandler
 
 def start(update, context):
-    """ inicia la conversa. """
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hola! Soc un bot bàsic.")
+    """ Inicia la conversa. """
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hola! Sóc Scarlett el teu bot guia.")
 
 def help(update, context):
-    """ ofereix ajuda sobre les comandes disponibles. """
+    """ Ofereix ajuda sobre les comandes disponibles. """
     help_message = 'Tinc les funcions següents:\n'
     for key in COMMANDS.keys():
         help_message += '\n 🚩 ' '/' + key + ' ➡️ ' + COMMANDS[key]
@@ -14,7 +14,7 @@ def help(update, context):
         text=help_message)
 
 def author(update, context):
-    """ mostra el nom dels autors del projecte. """
+    """ Mostra el nom dels autors del projecte. """
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Els meus autors són:\n" +
@@ -22,12 +22,10 @@ def author(update, context):
         "    -Pau Matas Albiol👨🏼‍💻")
 
 def go(update, context):
-    """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
-    imatge = "ruta"
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imatge + '.png', 'rb'))
-
+    """ Comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
+    
 def where(update, context):
-    """ dóna la localització actual de l'usuari. """
+    """ Dóna la localització actual de l'usuari. """
 
 def cancel(update, context):
     """ """
