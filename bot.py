@@ -18,36 +18,36 @@ def help(update, context):
         chat_id=update.effective_chat.id,
         text=help_message)
 
-def language(update, context):
-    """ ... """
-    global user
-    language = str(context.args[0])
-    try:
-        pass
-    except Exception as e:
-        print(e)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Em sap greu %s, encara no estic preparada per parlar en %s\nSegueixo en desenvolupament⚙️" % (user, language))
-
-
-def conveyance(update, context):
-    """ ... """
-    global user
-    conveyance = str(context.args[0])
-    try:
-        if conveyance == 'cotxe':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en cotxe!🚗')
-        elif conveyance == 'caminant':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en caminant!🚶‍♂️')
-    except Exception as e:
-        print(e)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
+# def language(update, context):
+#     """ ... """
+#     global user
+#     language = str(context.args[0])
+#     try:
+#         pass
+#     except Exception as e:
+#         print(e)
+#         context.bot.send_message(
+#             chat_id=update.effective_chat.id,
+#             text="Em sap greu %s, encara no estic preparada per parlar en %s\nSegueixo en desenvolupament⚙️" % (user, language))
+#
+#
+# def conveyance(update, context):
+#     """ ... """
+#     global user
+#     conveyance = str(context.args[0])
+#     try:
+#         if conveyance == 'cotxe':
+#             context.bot.send_message(
+#                 chat_id=update.effective_chat.id,
+#                 text='Perfecte anem en cotxe!🚗')
+#         elif conveyance == 'caminant':
+#             context.bot.send_message(
+#                 chat_id=update.effective_chat.id,
+#                 text='Perfecte anem en caminant!🚶‍♂️')
+#     except Exception as e:
+#         print(e)
+#         context.bot.send_message(
+#             chat_id=update.effective_chat.id,
             text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
 
 
@@ -59,8 +59,8 @@ def author(update, context):
         "    -Tomàs Gadea Alcaide🧑🏼‍💻\n" +
         "    -Pau Matas Albiol👨🏼‍💻")
 
-def go(update, context):
-    """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
+# def go(update, context):
+#     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
 # Nomes un esboç no implementat encara
 #     try:
 #         destination = str(context.args[0])
