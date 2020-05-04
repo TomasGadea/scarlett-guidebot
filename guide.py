@@ -59,8 +59,8 @@ def print_graph(graph):
 
 
 def get_directions(graph, source_location, destination_location):
-    """ Return a list of maps. Each map conatins info about the section of the path (see from_path_to_directions). """
-
+    """ Return a list of maps. Each map conatins info about the section of the
+        path (see from_path_to_directions). """
     src = closest_node_to(graph, source_location)
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst = closest_node_to(graph, destination_location)
@@ -79,15 +79,21 @@ def get_directions(graph, source_location, destination_location):
 
 
 def closest_node_to(graph, source_location):
-    """ Return the graph node nearest to some specified source_location: (lat, lng) """
+    """ Return the graph node nearest to some specified source_location:
+        (lat, lng) """
 
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
 def from_path_to_directions(graph, sp_nodes):
+<<<<<<< HEAD
     """ Given a list of nodes in the shortest path (sp_nodes)
         returns the path in a directions format (angle, src, name, mid, ...) """
 
+=======
+    """ Returns the transformation from a path (represented as a list of nodes)
+        to directions in their correct format """
+>>>>>>> 9adeb4733ec7c7cdfe5c08515e794992409b0306
     sp_edges = ox.geo_utils.get_route_edge_attributes(graph, sp_nodes)
     sp_nodes = [id_to_coord_tuple(graph, node) for node in sp_nodes]
     n = len(sp_nodes)
@@ -97,7 +103,8 @@ def from_path_to_directions(graph, sp_nodes):
 
 
 def section(graph, sp_edges, sp_nodes, i, n):
-    """ ... """
+    """ From a list that represents a path of n nodes and its relative in edges
+        returns the section that starts in the node i of the list """
     section = {'angle': angle(sp_edges, i, n),
                'src': (sp_nodes[i][0], sp_nodes[i][1]),
                'mid': (sp_nodes[i + 1][0], sp_nodes[i + 1][1])}
@@ -126,7 +133,8 @@ def section(graph, sp_edges, sp_nodes, i, n):
 
 
 def id_to_coord_tuple(graph, node):
-    """ Given a graph and a node (in form of coordinates or id) returns the geo coordinates of that node in form of a tuple """
+    """ Given a graph and a node (in form of coordinates or id) returns the geo
+        coordinates of that node in form of a tuple """
     if not isinstance(node, tuple):
         return (graph.nodes[node]['y'], graph.nodes[node]['x'])
     else:
@@ -134,7 +142,8 @@ def id_to_coord_tuple(graph, node):
 
 
 def angle(sp_edges, i, n):
-    """ Returns the angle of edges i and i + 1 in sp_edges if we can calculate it. """
+    """ Returns the angle of edges i and i + 1 in sp_edges if we can
+        calculate it. """
     if i >= n-1 or not 'bearing' in sp_edges[i] or not 'bearing' in sp_edges[i + 1]:
         return None
     return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']
@@ -146,27 +155,35 @@ def plot_directions(graph, source_location, destination_location, directions,
         by directions in a file named filename.png """
     m = StaticMap(width, height)
     for section in directions:
-        src = (section['src'][1], section['src'][0])
-        dst = (section['mid'][1], section['mid'][0])
-        coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
 
-        if section['current_name'] is None:
-            if section['next_name'] is not None:
-                marker = CircleMarker(src, 'blue', 20)
-                line = Line(coordinates, 'blue', 4)
-            else:
-                marker = CircleMarker(src, 'red', 10)
-                line = Line(coordinates, 'blue', 4)
-        else:
-            marker = CircleMarker(src, 'red', 10)
-            line = Line(coordinates, 'red', 4)
+        marker, line = marker_and_line_depending_on_section_type(section)
 
         m.add_marker(marker)
         m.add_line(line)
 
         if section['dst'] is None:
-            marker = CircleMarker(dst, 'blue', 20)
-            m.add_marker(marker)
+            m.add_marker(CircleMarker(
+                (section['mid'][1], section['mid'][0]), 'blue', 20))
 
     image = m.render()
     image.save(filename + '.png')
+
+
+def marker_and_line_depending_on_section_type(section):
+    """ Returns one line and marker with diferent caracteristics depending on
+        the type of the section given """
+    src = (section['src'][1], section['src'][0])
+    dst = (section['mid'][1], section['mid'][0])
+    coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
+
+    if section['current_name'] is None:
+        if section['next_name'] is not None:
+            marker = CircleMarker(src, 'blue', 20)
+            line = Line(coordinates, 'blue', 4)
+        else:
+            marker = CircleMarker(src, 'red', 10)
+            line = Line(coordinates, 'blue', 4)
+    else:
+        marker = CircleMarker(src, 'red', 10)
+        line = Line(coordinates, 'red', 4)
+    return marker, line
