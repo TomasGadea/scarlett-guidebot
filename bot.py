@@ -1,4 +1,5 @@
 from telegram.ext import Updater, CommandHandler
+import guide
 
 # estic a pau
 
