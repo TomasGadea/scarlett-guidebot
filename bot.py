@@ -18,6 +18,7 @@ def help(update, context):
         chat_id=update.effective_chat.id,
         text=help_message)
 
+
 # def language(update, context):
 #     """ ... """
 #     global user
