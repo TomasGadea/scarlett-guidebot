@@ -151,7 +151,6 @@ def plot_directions(graph, source_location, destination_location, directions,
     for section in directions:
 
         marker, line = marker_and_line_depending_on_section_type(section)
-
         m.add_marker(marker)
         m.add_line(line)
 

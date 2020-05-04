@@ -60,6 +60,7 @@ def author(update, context):
         "    -Tomàs Gadea Alcaide🧑🏼‍💻\n" +
         "    -Pau Matas Albiol👨🏼‍💻")
 
+
 # def go(update, context):
 #     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
 # Nomes un esboç no implementat encara
