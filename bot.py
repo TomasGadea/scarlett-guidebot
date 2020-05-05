@@ -1,18 +1,22 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
 
+
 def start(update, context):
     """ inicia la conversa. """
     global user
     user = update.effective_chat.first_name
-    salute = "Hola %s! Sóc Scarlett, el teu bot guia.\nSi no coneixes el meu funcioanemnt et recomano la comanda /help.\nSi ja em coneixes, a on anem avui?" % (user)
+    salute = "Hola %s! Sóc Scarlett, el teu bot guia.\nSi no coneixes el meu funcioanemnt et recomano la comanda /help.\nSi ja em coneixes, a on anem avui?" % (
+        user)
     context.bot.send_message(chat_id=update.effective_chat.id, text=salute)
+
 
 def help(update, context):
     """ ofereix ajuda sobre les comandes disponibles. """
     global user
-    help_message = "D'acord %s, t'explico el meu funcionament.\nPrimer de tot necessito que comparteixis la teva ubicació en directe amb mi per a poder funcionar correctament.🗺\nUn cop fet això t'explico tot el que em pots demanar que faci:\n" % (user)
-    for key in COMMANDS.keys(): #PROVAR JOINT
+    help_message = "D'acord %s, t'explico el meu funcionament.\nPrimer de tot necessito que comparteixis la teva ubicació en directe amb mi per a poder funcionar correctament.🗺\nUn cop fet això t'explico tot el que em pots demanar que faci:\n" % (
+        user)
+    for key in COMMANDS.keys():  # PROVAR JOINT
         help_message += '\n 🚩 /' + key + ' ➡️ ' + COMMANDS[key]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -58,7 +62,11 @@ def author(update, context):
         chat_id=update.effective_chat.id,
         text="Els meus creadors són:\n" +
         "    -Tomás Gadea Alcaide🧑🏼‍💻\n" +
-        "    -Pau Matas Albiol👨🏼‍💻")
+        "        mail: 01tomas.gadea@gmail.com\n" +
+        "        github: https://github.com/TomasGadea" +
+        "    -Pau Matas Albiol👨🏼‍💻" +
+        "        mail: paumatasalbi@gmail.com" +
+        "        github: https://github.com/PauMatas")
 
 
 def go(update, context):
@@ -69,7 +77,8 @@ def go(update, context):
         graph = obtain_graph(destination)
         where()
         directions = get_directions(graph, location, destination)
-        plot_directions(graph, location, destination_coords,directions, destination)
+        plot_directions(graph, location, destination_coords,
+                        directions, destination)
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=open(destination + '.png', 'rb'))
@@ -81,8 +90,8 @@ def go(update, context):
                 text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
         else:
             context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
+                chat_id=update.effective_chat.id,
+                text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
 
 
 def where(update, context):
@@ -95,8 +104,10 @@ def where(update, context):
     global location
     location = (message.location.latitude, message.location.longitude)
 
+
 def cancel(update, context):
     """ """
+
 
 TOKEN = open('token.txt').read().strip()
 
