@@ -63,9 +63,9 @@ def author(update, context):
         text="Els meus creadors són:\n" +
         "    -Tomás Gadea Alcaide🧑🏼‍💻\n" +
         "        mail: 01tomas.gadea@gmail.com\n" +
-        "        github: https://github.com/TomasGadea" +
-        "    -Pau Matas Albiol👨🏼‍💻" +
-        "        mail: paumatasalbi@gmail.com" +
+        "        github: https://github.com/TomasGadea\n\n" +
+        "    -Pau Matas Albiol👨 🏼‍💻\n" +
+        "        mail: paumatasalbi@gmail.com\n" +
         "        github: https://github.com/PauMatas")
 
 
