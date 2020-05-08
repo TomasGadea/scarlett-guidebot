@@ -49,6 +49,9 @@ def conveyance(update, context):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text='Perfecte anem en caminant!🚶‍♂️')
+        else:
+            raise Exception
+
     except Exception as e:
         print(e)
         context.bot.send_message(
@@ -62,11 +65,9 @@ def author(update, context):
         chat_id=update.effective_chat.id,
         text="Els meus creadors són:\n" +
         "    -Tomás Gadea Alcaide🧑🏼‍💻\n" +
-        "        mail: 01tomas.gadea@gmail.com\n" +
-        "        github: https://github.com/TomasGadea\n\n" +
+        "        mail: 01tomas.gadea@gmail.com\n\n" +
         "    -Pau Matas Albiol👨 🏼‍💻\n" +
-        "        mail: paumatasalbi@gmail.com\n" +
-        "        github: https://github.com/PauMatas")
+        "        mail: paumatasalbi@gmail.com\n")
 
 
 def go(update, context):
