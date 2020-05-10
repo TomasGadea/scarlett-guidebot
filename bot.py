@@ -66,7 +66,7 @@ def author(update, context):
         text="Els meus creadors són:\n" +
         "    -Tomás Gadea Alcaide🧑🏼‍💻\n" +
         "        mail: 01tomas.gadea@gmail.com\n\n" +
-        "    -Pau Matas Albiol👨 🏼‍💻\n" +
+        "    -Pau Matas Albiol🧑🏼‍💻\n" +
         "        mail: paumatasalbi@gmail.com\n")
 
 
@@ -97,11 +97,8 @@ def go(update, context):
 
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
-    message = None
-    if update.edited_message:
-        message = update.edited_message
-    else:
-        message = update.message
+
+    message = update.edited_message if update.edited_message else update.message
     global location
     location = (message.location.latitude, message.location.longitude)
 

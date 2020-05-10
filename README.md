@@ -22,4 +22,4 @@ AP2 project (GCED)
 
 - [osmnx nearest nodes/edges](https://osmnx.readthedocs.io/en/stable/osmnx.html#osmnx.utils.get_nearest_node)
 
-- [† † †](https://www.youtube.com/watch?v=sTyZu9_6T0w)
+- [† † †](https://www.youtube.com/watch?v=Vl8UIuHfbX8)
