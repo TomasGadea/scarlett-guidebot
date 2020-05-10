@@ -108,7 +108,18 @@ def where(update, context):
 
 def cancel(update, context):
     """ """
+# carregar el mapa de Barcelona:
 
+
+def init_bcn_map():
+    try:
+        map = guide.load_graph("bcn_graph")
+    except FileNotFoundError:
+        map = guide.download_graph("Barcelona, Spain")
+        guide.save_graph(map, "bcn_graph")
+
+
+init_bcn_map()
 
 TOKEN = open('token.txt').read().strip()
 
