@@ -108,15 +108,16 @@ def where(update, context):
 
 def cancel(update, context):
     """ """
-# carregar el mapa de Barcelona:
 
 
 def init_bcn_map():
+    """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
+    global bcn_map
     try:
-        map = guide.load_graph("bcn_graph")
+        bcn_map = guide.load_graph("bcn_graph")
     except FileNotFoundError:
-        map = guide.download_graph("Barcelona, Spain")
-        guide.save_graph(map, "bcn_graph")
+        bcn_map = guide.download_graph("Barcelona, Spain")
+        guide.save_graph(bcn_map, "bcn_graph")
 
 
 init_bcn_map()
@@ -135,6 +136,7 @@ COMMANDS = {
 
 location = (None, None)
 user = 'usuari'
+bcn_map = 'global_graph'
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
