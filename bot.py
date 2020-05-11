@@ -72,12 +72,18 @@ def author(update, context):
 
 def go(update, context):
     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
-# Nomes un esboç no implementat encara
+# Suposem que només ens movem per Barcelona.
+    global bcn_map
+    global location
+
     try:
         destination = str(context.args)
-        graph = obtain_graph(destination)
-        where()
-        directions = get_directions(graph, location, destination)
+        # insertem la destinacio al diccionari particular de l'usuari:
+        context.user_data['destination'] = destination
+# -----
+        where()  # podem prescindir d'això (?). crec que s'actualitza sol, no cal cridar where()
+
+        directions = guide.get_directions(graph, location, destination)
         plot_directions(graph, location, destination_coords,
                         directions, destination)
         context.bot.send_photo(
@@ -132,8 +138,9 @@ COMMANDS = {
 }
 
 location = (None, None)
-user = 'usuari'
-bcn_map = 'global_graph'
+destination = (None, None)
+user = None
+bcn_map = None
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
