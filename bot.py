@@ -1,10 +1,10 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
+import osmnx as ox
 
 
 def start(update, context):
     """ inicia la conversa. """
-    global user
     user = update.effective_chat.first_name
     salute = "Hola %s! Sóc Scarlett, el teu bot guia.\nSi no coneixes el meu funcioanemnt et recomano la comanda /help.\nSi ja em coneixes, a on anem avui?" % (
         user)
@@ -13,7 +13,7 @@ def start(update, context):
 
 def help(update, context):
     """ ofereix ajuda sobre les comandes disponibles. """
-    global user
+    user = update.effective_chat.first_name
     help_message = "D'acord %s, t'explico el meu funcionament.\nPrimer de tot necessito que comparteixis la teva ubicació en directe amb mi per a poder funcionar correctament.🗺\nUn cop fet això t'explico tot el que em pots demanar que faci:\n" % (
         user)
     for key in COMMANDS.keys():  # PROVAR JOINT
@@ -25,7 +25,8 @@ def help(update, context):
 
 def language(update, context):
     """ ... """
-    global user
+    user = update.effective_chat.first_name
+
     language = str(context.args[0])
     try:
         pass
@@ -38,25 +39,27 @@ def language(update, context):
 
 def conveyance(update, context):
     """ ... """
-    global user
-    conveyance = str(context.args[0])
-    try:
-        if conveyance == 'cotxe':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en cotxe!🚗')
-        elif conveyance == 'caminant':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en caminant!🚶‍♂️')
-        else:
-            raise Exception
+    user = update.effective_chat.first_name
 
-    except Exception as e:
-        print(e)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
+    print(context.user_data['location'])
+    # conveyance = str(context.args[0])
+    # try:
+    #     if conveyance == 'cotxe':
+    #         context.bot.send_message(
+    #             chat_id=update.effective_chat.id,
+    #             text='Perfecte anem en cotxe!🚗')
+    #     elif conveyance == 'caminant':
+    #         context.bot.send_message(
+    #             chat_id=update.effective_chat.id,
+    #             text='Perfecte anem en caminant!🚶‍♂️')
+    #     else:
+    #         raise Exception
+    #
+    # except Exception as e:
+    #     print(e)
+    #     context.bot.send_message(
+    #         chat_id=update.effective_chat.id,
+    #         text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
 
 
 def author(update, context):
@@ -74,18 +77,17 @@ def go(update, context):
     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
 # Suposem que només ens movem per Barcelona.
     global bcn_map
-    global location
+    user = context.user_data['name']
 
     try:
-        destination = str(context.args)
-        # insertem la destinacio al diccionari particular de l'usuari:
-        context.user_data['destination'] = destination
-# -----
-        where()  # podem prescindir d'això (?). crec que s'actualitza sol, no cal cridar where()
 
-        directions = guide.get_directions(graph, location, destination)
-        plot_directions(graph, location, destination_coords,
-                        directions, destination)
+        location = context.user_data['location']
+        # geocode retorna tupla (lat, long)
+        destination = context.user_data['destination'] = ox.geo_utils.geocode(
+            str(context.args))
+
+        directions = guide.get_directions(bcn_map, location, destination)
+        guide.plot_directions(bcn_map, location, destination, directions, user)
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=open(destination + '.png', 'rb'))
@@ -105,14 +107,15 @@ def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
 
     message = update.edited_message if update.edited_message else update.message
-    global location
-    location = (message.location.latitude, message.location.longitude)
+    context.user_data['location'] = (
+        message.location.latitude, message.location.longitude)
 
 
 def cancel(update, context):
-    """ """
+    """ ... """
 
 
+#  considerar desencapsular funció
 def init_bcn_map():
     """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
     global bcn_map
@@ -137,9 +140,6 @@ COMMANDS = {
     'cancel': "cancel·la el sistema de guia actiu.",
 }
 
-location = (None, None)
-destination = (None, None)
-user = None
 bcn_map = None
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
