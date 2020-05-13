@@ -41,25 +41,24 @@ def conveyance(update, context):
     """ ... """
     user = update.effective_chat.first_name
 
-    print(context.user_data['location'])
-    # conveyance = str(context.args[0])
-    # try:
-    #     if conveyance == 'cotxe':
-    #         context.bot.send_message(
-    #             chat_id=update.effective_chat.id,
-    #             text='Perfecte anem en cotxe!🚗')
-    #     elif conveyance == 'caminant':
-    #         context.bot.send_message(
-    #             chat_id=update.effective_chat.id,
-    #             text='Perfecte anem en caminant!🚶‍♂️')
-    #     else:
-    #         raise Exception
-    #
-    # except Exception as e:
-    #     print(e)
-    #     context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
+    conveyance = str(context.args[0])
+    try:
+        if conveyance == 'cotxe':
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text='Perfecte anem en cotxe!🚗')
+        elif conveyance == 'caminant':
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text='Perfecte anem en caminant!🚶‍♂️')
+        else:
+            raise Exception
+
+    except Exception as e:
+        print(e)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
 
 
 def author(update, context):
