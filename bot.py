@@ -120,10 +120,10 @@ def init_bcn_map():
     """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
     global bcn_map
     try:
-        bcn_map = guide.load_graph("bcn_graph")
+        bcn_map = guide.load_graph("bcn_map")
     except FileNotFoundError:
         bcn_map = guide.download_graph("Barcelona, Spain")
-        guide.save_graph(bcn_map, "bcn_graph")
+        guide.save_graph(bcn_map, "bcn_map")
 
 
 init_bcn_map()
