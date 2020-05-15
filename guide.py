@@ -59,23 +59,14 @@ def print_graph(graph):
 
 
 def get_directions(graph, source_location, destination_location):
-    """ Return a list of maps. Each map conatins info about the section of the
-        path (see from_path_to_directions). """
+    """ Return a list of nodes that represents the shortest path from the closest node to source_location
+        to the closest node to destination_location."""
     src = closest_node_to(graph, source_location)
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst = closest_node_to(graph, destination_location)
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
 
-    src_length = haversine(source_location, src_coord, unit='m')
-    dst_length = haversine(destination_location, dst_coord, unit='m')
-
-    graph.add_edges_from([(source_location, src, {'length': src_length}),
-                          (dst, destination_location, {'length': dst_length})])
-
-    shortest_path = nx.shortest_path(graph, source_location,
-                                     destination_location)
-    route = from_path_to_directions(graph, shortest_path)
-    return route
+    return nx.shortest_path(graph, src, dst)
 
 
 def closest_node_to(graph, source_location):
@@ -85,11 +76,26 @@ def closest_node_to(graph, source_location):
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
-def from_path_to_directions(graph, sp_nodes):
+def from_path_to_directions(graph, sp_nodes, source_location, destination_location):
     """ Returns the transformation from a path (represented as a list of nodes)
         to directions in their correct format """
-    sp_edges = ox.geo_utils.get_route_edge_attributes(graph, sp_nodes)
-    sp_nodes = [id_to_coord_tuple(graph, node) for node in sp_nodes]
+
+    # QUEDA BASTANT LLEIG,ens hem de plantejar si volem afegir la longitud a la primera i ultima aresta.
+    src = closest_node_to(graph, source_location)
+    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
+    dst = closest_node_to(graph, destination_location)
+    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
+    src_length = haversine(source_location, src_coord, unit='m')
+    dst_length = haversine(destination_location, dst_coord, unit='m')
+
+    # afegim les arestes i nodes extres per a arribar tant a l'usuari com al
+    # destí per a facilitar-nos la feina a l'hora de transformar a seccions
+    # recorrent una sola llista i no diferents trossos
+
+    # ES UN COMENTARI FEO PERQUE ENTENGUIS LES COSES FEES QUE HE FET
+    sp_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + [(dst, destination_location, {'length': dst_length})]
+    sp_nodes = [source_location] + [id_to_coord_tuple(graph, node) for node in sp_nodes] + [destination_location]
+
     n = len(sp_nodes)
     directions = [section(graph, sp_edges, sp_nodes, i, n) for i, node
                   in enumerate(sp_nodes) if i < n - 1]
@@ -147,8 +153,10 @@ def plot_directions(graph, source_location, destination_location, directions,
                     filename, width=400, height=400):
     """ Plots the route from source_location to destination_location described
         by directions in a file named filename.png """
+    route = from_path_to_directions(graph, directions, source_location, destination_location)
+
     m = StaticMap(width, height)
-    for section in directions:
+    for section in route:
 
         marker, line = marker_and_line_depending_on_section_type(section)
         m.add_marker(marker)
