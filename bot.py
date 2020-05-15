@@ -111,7 +111,9 @@ def where(update, context):
 
 
 def cancel(update, context):
-    """ ... """
+    """ Finalitza la ruta actual de l'usuari. """
+    # comptant que el bot no actualitza la ruta si no sap la destination ni la prev location de l'usuari, nomes eliminant aquesta informacio ja aturem la ruta
+    del context.user_data['destination'], context.user_data['prev location']
 
 
 #  considerar desencapsular funció
