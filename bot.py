@@ -1,3 +1,4 @@
+import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
 import osmnx as ox
@@ -63,13 +64,21 @@ def conveyance(update, context):
 
 def author(update, context):
     """ Mostra el nom dels autors del projecte. """
+    info = '''
+Els meus creadors són:
+
+- *Tomás Gadea Alcaide* 🧑🏼‍💻
+    mail: 01tomas.gadea@gmail.com
+
+- *Pau Matas Albiol* 🧑🏼‍💻
+    mail: paumatasalbi@gmail.com
+
+'''
+
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Els meus creadors són:\n" +
-        "    -Tomás Gadea Alcaide🧑🏼‍💻\n" +
-        "        mail: 01tomas.gadea@gmail.com\n\n" +
-        "    -Pau Matas Albiol🧑🏼‍💻\n" +
-        "        mail: paumatasalbi@gmail.com\n")
+        text=info,
+        parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 def go(update, context):
@@ -79,7 +88,7 @@ def go(update, context):
     user = context.user_data['name']
 
     try:
-
+        # INTENTAR REDUIR L'ÚS DEL ox AL guide.py UNICAMENT
         location = context.user_data['location']
         # geocode retorna tupla (lat, long)
         destination = context.user_data['destination'] = ox.geo_utils.geocode(
