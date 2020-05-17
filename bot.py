@@ -2,6 +2,23 @@ import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
 import osmnx as ox
+import os
+import traceback
+
+bcn_map = None
+
+
+def init_bcn_map():
+    """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
+    global bcn_map
+    try:
+        bcn_map = guide.load_graph("bcn_map")
+    except FileNotFoundError:
+        bcn_map = guide.download_graph("Barcelona, Spain")
+        guide.save_graph(bcn_map, "bcn_map")
+
+
+init_bcn_map()
 
 
 def start(update, context):
@@ -85,26 +102,58 @@ def go(update, context):
     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
 # Suposem que només ens movem per Barcelona.
     global bcn_map
-    user = context.user_data['name']
+    user = update.effective_chat.first_name
 
     try:
         # INTENTAR REDUIR L'ÚS DEL ox AL guide.py UNICAMENT
         location = context.user_data['location']
+        # la excepció no funciona!!
+        if 'location' not in context.user_data:
+            raise Exception
+
+        message = ''
+        for i in range(len(context.args)):
+            message += str(context.args[i] + ' ')
+
         # geocode retorna tupla (lat, long)
         destination = context.user_data['destination'] = ox.geo_utils.geocode(
-            str(context.args))
+            message)
 
-        directions = guide.get_directions(bcn_map, location, destination)
-        guide.plot_directions(bcn_map, location, destination, directions, user)
+# sp_nodes son nodes amb ID
+        sp_nodes = guide.get_directions(bcn_map, location, destination)
+        # directions is a list of dictionaries. Each dict is a section.
+        directions = guide.from_path_to_directions(
+            bcn_map, sp_nodes, location, destination)
+
+        context.user_data['directions'] = directions
+        context.user_data['checkpoint'] = 0
+
+        # generem, guardem i enviem la imatge amb trejecte:
+        guide.plot_directions(bcn_map, location, destination, sp_nodes, user)
+
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
-            photo=open(destination + '.png', 'rb'))
+            photo=open(user + '.png', 'rb'))
+        # eliminem la imatge del trejecte. Ja pensarem com ferho mes maco (ubi actual...)
+        os.remove(user + '.png')
+
+        # enviem el primer tram al usuari:
+        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint 1️⃣:    " + str(
+            directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=info)
+
     except Exception as e:
         print(e)
+        print(traceback.format_exc())
         if location == (None, None):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
+        elif e == 'location':
+            print("error de localització capullo")
+
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -121,22 +170,10 @@ def where(update, context):
 
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
-    # comptant que el bot no actualitza la ruta si no sap la destination ni la prev location de l'usuari, nomes eliminant aquesta informacio ja aturem la ruta
-    del context.user_data['destination'], context.user_data['prev location']
 
+    context.user_data['location'] = (None, None)
+    print("canceled")
 
-#  considerar desencapsular funció
-def init_bcn_map():
-    """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
-    global bcn_map
-    try:
-        bcn_map = guide.load_graph("bcn_map")
-    except FileNotFoundError:
-        bcn_map = guide.download_graph("Barcelona, Spain")
-        guide.save_graph(bcn_map, "bcn_map")
-
-
-init_bcn_map()
 
 TOKEN = open('token.txt').read().strip()
 
@@ -150,7 +187,6 @@ COMMANDS = {
     'cancel': "cancel·la el sistema de guia actiu.",
 }
 
-bcn_map = None
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 

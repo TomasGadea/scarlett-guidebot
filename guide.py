@@ -47,15 +47,15 @@ def print_graph(graph):
 
     print(nx.info(graph))
 
-    for node1, info1 in graph.nodes.items():
-        print(node1, info1)
-        for node2, info2 in graph.adj[node1].items():
-            print('    ', node2)
-            edge = info2[0]
-            print('        ', edge)
-
-    ox.plot_graph(graph)
-    plt.show()
+    # for node1, info1 in graph.nodes.items():
+    #     print(node1, info1)
+    #     for node2, info2 in graph.adj[node1].items():
+    #         print('    ', node2)
+    #         edge = info2[0]
+    #         print('        ', edge)
+    #
+    # ox.plot_graph(graph)
+    # plt.show()
 
 
 def get_directions(graph, source_location, destination_location):
@@ -66,7 +66,7 @@ def get_directions(graph, source_location, destination_location):
     dst = closest_node_to(graph, destination_location)
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])  # eliminar ?
 
-    return nx.shortest_path(graph, src, dst)
+    return nx.shortest_path(graph, src, dst)  # nodes with ID
 
 
 def closest_node_to(graph, source_location):
@@ -104,7 +104,7 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     n = len(sp_nodes)
     directions = [section(graph, sp_edges, sp_nodes, i, n) for i, node
                   in enumerate(sp_nodes) if i < n - 1]
-    return directions
+    return directions  # is a list of dictionaries
 
 
 def section(graph, sp_edges, sp_nodes, i, n):
