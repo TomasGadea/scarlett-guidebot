@@ -62,9 +62,9 @@ def get_directions(graph, source_location, destination_location):
     """ Return a list of nodes that represents the shortest path from the closest node to source_location
         to the closest node to destination_location."""
     src = closest_node_to(graph, source_location)
-    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
+    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])  # eliminar ?
     dst = closest_node_to(graph, destination_location)
-    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
+    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])  # eliminar ?
 
     return nx.shortest_path(graph, src, dst)
 
@@ -81,6 +81,8 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
         to directions in their correct format """
 
     # QUEDA BASTANT LLEIG,ens hem de plantejar si volem afegir la longitud a la primera i ultima aresta.
+    # Jo (tommy) eliminaria la longitud. El petit la considera None.
+    # Estem repetint codi del get directions...
     src = closest_node_to(graph, source_location)
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst = closest_node_to(graph, destination_location)
@@ -93,8 +95,11 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     # recorrent una sola llista i no diferents trossos
 
     # ES UN COMENTARI FEO PERQUE ENTENGUIS LES COSES FEES QUE HE FET
-    sp_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + [(dst, destination_location, {'length': dst_length})]
-    sp_nodes = [source_location] + [id_to_coord_tuple(graph, node) for node in sp_nodes] + [destination_location]
+    sp_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(
+        graph, sp_nodes) + [(dst, destination_location, {'length': dst_length})]
+    sp_nodes = [source_location] + \
+        [id_to_coord_tuple(graph, node)
+         for node in sp_nodes] + [destination_location]
 
     n = len(sp_nodes)
     directions = [section(graph, sp_edges, sp_nodes, i, n) for i, node
@@ -104,8 +109,9 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
 
 def section(graph, sp_edges, sp_nodes, i, n):
     """ From a list that represents a path of n nodes and its relative in edges
-        returns the section that starts in the node i of the list """
+        returns the section (dictionary) that starts in the node i of the list """
     section = {'angle': angle(sp_edges, i, n),
+               # podriem fer sp_nodes[i] ja que sp_nodes ja és la llista de tuples?
                'src': (sp_nodes[i][0], sp_nodes[i][1]),
                'mid': (sp_nodes[i + 1][0], sp_nodes[i + 1][1])}
 
@@ -137,7 +143,7 @@ def id_to_coord_tuple(graph, node):
         coordinates of that node in form of a tuple """
     if not isinstance(node, tuple):
         return (graph.nodes[node]['y'], graph.nodes[node]['x'])
-    else:
+    else:  # broooo aquest else fa mal a la vista
         return node
 
 
@@ -146,14 +152,15 @@ def angle(sp_edges, i, n):
         calculate it. """
     if i >= n-1 or not 'bearing' in sp_edges[i] or not 'bearing' in sp_edges[i + 1]:
         return None
-    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']
+    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']  # aixo funciona?
 
 
 def plot_directions(graph, source_location, destination_location, directions,
                     filename, width=400, height=400):
-    """ Plots the route from source_location to destination_location described
+    """ Plots and saves the route from source_location to destination_location described
         by directions in a file named filename.png """
-    route = from_path_to_directions(graph, directions, source_location, destination_location)
+    route = from_path_to_directions(
+        graph, directions, source_location, destination_location)
 
     m = StaticMap(width, height)
     for section in route:
@@ -173,10 +180,12 @@ def plot_directions(graph, source_location, destination_location, directions,
 def marker_and_line_depending_on_section_type(section):
     """ Returns one line and marker with diferent caracteristics depending on
         the type of the section given """
+    # section['src'] ja es una tupla?
     src = (section['src'][1], section['src'][0])
     dst = (section['mid'][1], section['mid'][0])
     coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
 
+    # pot ser que marqui blau en mig del recorregut? (Passem per carrerons sense nom)
     if section['current_name'] is None:
         if section['next_name'] is not None:
             marker = CircleMarker(src, 'blue', 20)
