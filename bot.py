@@ -103,11 +103,12 @@ def go(update, context):
 # Suposem que només ens movem per Barcelona.
     global bcn_map
     user = update.effective_chat.first_name
+    nick = update.effective_chat.username
 
     try:
         location = context.user_data['location']
 
-        message = ''
+        message = ''  # ' '.join(str(context.args))
         for i in range(len(context.args)):
             message += str(context.args[i] + ' ')
 
@@ -123,19 +124,21 @@ def go(update, context):
             bcn_map, sp_nodes, location, destination)
 
         context.user_data['directions'] = directions
+        context.user_data['sp_nodes'] = sp_nodes
         context.user_data['checkpoint'] = 0
 
         # generem, guardem i enviem la imatge amb trejecte:
-        guide.plot_directions(bcn_map, location, destination, sp_nodes, user)
+        guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
 
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
-            photo=open(user + '.png', 'rb'))
+            photo=open(nick + '.png', 'rb'))
         # eliminem la imatge del trejecte. Ja pensarem com ferho mes maco (ubi actual...)
-        os.remove(user + '.png')
+        os.remove(nick + '.png')
 
         # enviem el primer tram al usuari:
-        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint 1️⃣:    " + str(
+        # OJO CARRERS DOBLES
+        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint 1️ ⃣:    " + str(
             directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -172,13 +175,17 @@ def where(update, context):
 
     if guide.dist(loc, mid) <= 20:
         check += 1
-        info = 'Molt bé: has arribat al Checkpoint #' + \
-            str(check) + '!\n' + 'Estàs a ' + \
-            str(directions[check]['src']) + \
-            '\nVes al Chekpoint #' + \
-            str(check+1) + ': ' + \
-            str(directions[check]['mid']) + \
-            '(' + directions[check]['next_name'] + ')' + 'longitud:\nangle:\n'
+
+        info = 'Molt bé: has arribat al Checkpoint  # %d!\n
+        Estàs a % s\n
+        Ves al Chekpoint  # %d: %s(%s) longitud:\n
+        angle: \n'
+        % (
+            check,
+            str(directions[check]['src']),
+            check+1, str(directions[check]['mid']),
+            str(directions[check]['next_name'])
+        )
 
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -189,8 +196,8 @@ def where(update, context):
 
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
-    user = update.effective_chat.first_name
-    print("canceled by", user)
+    nick = update.effective_chat.username
+    print("canceled by", nick)
 
     del context.user_data['directions'], context.user_data['destination']
     context.user_data['checkpoint'] = 0

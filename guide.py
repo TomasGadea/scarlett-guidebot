@@ -62,9 +62,7 @@ def get_directions(graph, source_location, destination_location):
     """ Return a list of nodes that represents the shortest path from the closest node to source_location
         to the closest node to destination_location."""
     src = closest_node_to(graph, source_location)
-    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])  # eliminar ?
     dst = closest_node_to(graph, destination_location)
-    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])  # eliminar ?
 
     return nx.shortest_path(graph, src, dst)  # nodes with ID
 
@@ -80,21 +78,13 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     """ Returns the transformation from a path (represented as a list of nodes)
         to directions in their correct format """
 
-    # QUEDA BASTANT LLEIG,ens hem de plantejar si volem afegir la longitud a la primera i ultima aresta.
-    # Jo (tommy) eliminaria la longitud. El petit la considera None.
-    # Estem repetint codi del get directions...
     src = closest_node_to(graph, source_location)
-    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst = closest_node_to(graph, destination_location)
-    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
-    src_length = dist(source_location, src_coord)
-    dst_length = dist(destination_location, dst_coord)
 
     # afegim les arestes i nodes extres per a arribar tant a l'usuari com al
     # destí per a facilitar-nos la feina a l'hora de transformar a seccions
     # recorrent una sola llista i no diferents trossos
 
-    # ES UN COMENTARI FEO PERQUE ENTENGUIS LES COSES FEES QUE HE FET
     sp_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(
         graph, sp_nodes) + [(dst, destination_location, {'length': dst_length})]
     sp_nodes = [source_location] + \
@@ -143,8 +133,8 @@ def id_to_coord_tuple(graph, node):
         coordinates of that node in form of a tuple """
     if not isinstance(node, tuple):
         return (graph.nodes[node]['y'], graph.nodes[node]['x'])
-    else:  # broooo aquest else fa mal a la vista
-        return node
+
+    return node
 
 
 def angle(sp_edges, i, n):
@@ -152,7 +142,7 @@ def angle(sp_edges, i, n):
         calculate it. """
     if i >= n-1 or not 'bearing' in sp_edges[i] or not 'bearing' in sp_edges[i + 1]:
         return None
-    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']  # aixo funciona?
+    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']
 
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
