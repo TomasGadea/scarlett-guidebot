@@ -105,21 +105,18 @@ def go(update, context):
     user = update.effective_chat.first_name
 
     try:
-        # INTENTAR REDUIR L'ÚS DEL ox AL guide.py UNICAMENT
         location = context.user_data['location']
-        # la excepció no funciona!!
-        if 'location' not in context.user_data:
-            raise Exception
 
         message = ''
         for i in range(len(context.args)):
             message += str(context.args[i] + ' ')
 
+        # INTENTAR REDUIR L'ÚS DEL ox AL guide.py UNICAMENT
         # geocode retorna tupla (lat, long)
         destination = context.user_data['destination'] = ox.geo_utils.geocode(
             message)
 
-# sp_nodes son nodes amb ID
+        # sp_nodes son nodes amb ID
         sp_nodes = guide.get_directions(bcn_map, location, destination)
         # directions is a list of dictionaries. Each dict is a section.
         directions = guide.from_path_to_directions(
@@ -144,20 +141,18 @@ def go(update, context):
             chat_id=update.effective_chat.id,
             text=info)
 
-    except Exception as e:
-        print(e)
-        print(traceback.format_exc())
-        if location == (None, None):
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
-        elif e == 'location':
-            print("error de localització capullo")
+    except KeyError:  # any location has been shared
+        print('KeyError')
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
 
-        else:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
+    except Exception as e:
+        print(traceback.format_exc())
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
 
 
 def where(update, context):
