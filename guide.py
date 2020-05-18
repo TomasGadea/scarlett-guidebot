@@ -87,8 +87,8 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst = closest_node_to(graph, destination_location)
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
-    src_length = haversine(source_location, src_coord, unit='m')
-    dst_length = haversine(destination_location, dst_coord, unit='m')
+    src_length = dist(source_location, src_coord)
+    dst_length = dist(destination_location, dst_coord)
 
     # afegim les arestes i nodes extres per a arribar tant a l'usuari com al
     # destí per a facilitar-nos la feina a l'hora de transformar a seccions
@@ -155,8 +155,7 @@ def angle(sp_edges, i, n):
     return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']  # aixo funciona?
 
 
-def plot_directions(graph, source_location, destination_location, directions,
-                    filename, width=400, height=400):
+def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
     """ Plots and saves the route from source_location to destination_location described
         by directions in a file named filename.png """
     route = from_path_to_directions(
@@ -197,3 +196,7 @@ def marker_and_line_depending_on_section_type(section):
         marker = CircleMarker(src, 'red', 10)
         line = Line(coordinates, 'red', 4)
     return marker, line
+
+
+def dist(a, b):
+    return haversine(a, b, unit='m')

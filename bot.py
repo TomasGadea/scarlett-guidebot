@@ -158,16 +158,52 @@ def go(update, context):
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
 
-    message = update.edited_message if update.edited_message else update.message
-    context.user_data['location'] = (
-        message.location.latitude, message.location.longitude)
+    if 'location' not in context.user_data or not context.user_data['test']:
+        message = update.edited_message if update.edited_message else update.message
+        loc = context.user_data['location'] = (
+            message.location.latitude, message.location.longitude)
+
+    else:
+        loc = context.user_data['location']
+
+    check = context.user_data['checkpoint']
+    directions = context.user_data['directions']
+    mid = directions[check]['mid']
+
+    if guide.dist(loc, mid) <= 20:
+        check += 1
+        info = 'Molt bé: has arribat al Checkpoint #' + \
+            str(check) + '!\n' + 'Estàs a ' + \
+            str(directions[check]['src']) + \
+            '\nVes al Chekpoint #' + \
+            str(check+1) + ': ' + \
+            str(directions[check]['mid']) + \
+            '(' + directions[check]['next_name'] + ')' + 'longitud:\nangle:\n'
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=info)
+
+        context.user_data['checkpoint'] += 1
 
 
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
+    user = update.effective_chat.first_name
+    print("canceled by", user)
 
-    context.user_data['location'] = (None, None)
-    print("canceled")
+    del context.user_data['directions'], context.user_data['destination']
+    context.user_data['checkpoint'] = 0
+
+
+def next(update, context):
+    check = context.user_data['checkpoint']
+    mid = context.user_data['directions'][check]['mid']
+    next = (mid[0] - 0.0001, mid[1] - 0.0001)
+    context.user_data['location'] = next
+
+    context.user_data['test'] = True  # bool to know if we are testing
+    where(update, context)
 
 
 TOKEN = open('token.txt').read().strip()
@@ -193,6 +229,7 @@ dispatcher.add_handler(CommandHandler('go', go))
 dispatcher.add_handler(CommandHandler('cancel', cancel))
 dispatcher.add_handler(CommandHandler('language', language))
 dispatcher.add_handler(CommandHandler('conveyance', conveyance))
+dispatcher.add_handler(CommandHandler('next', next))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 
 # engega el bot
