@@ -166,6 +166,9 @@ def zoom(update, context):
 
     except Exception:
         print(traceback.format_exc())
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="No has iniciat cap trajecte! Utilitza la comanda [/go 'destinació'] per començar la ruta.")
 
 
 def where(update, context):
@@ -198,13 +201,13 @@ def where(update, context):
             str(sections[check]['next_name'])
         )
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=info)
-
         context.user_data['checkpoint'] += 1
 
         send_message(update, context)
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=info)
 
 
 def cancel(update, context):
@@ -278,6 +281,7 @@ COMMANDS = {
     'author': "si ets curiós et puc dir qui m'ha creat.",
     'go destí': "et començo a guiar per a arrivar de la teva posició actual fins al punt de destí que m'hagis especificat.🧭\nT'anire enviant indicacions al teu dispositiu de les direccions que has de prendre.📲",
     'cancel': "cancel·la el sistema de guia actiu.",
+    'zoom': "Envia una foto ampliada amb els 3 pròxims checkpoints."
 }
 
 updater = Updater(token=TOKEN, use_context=True)
