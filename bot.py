@@ -120,7 +120,7 @@ def go(update, context):
         context.user_data['sections'] = sections
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-        send_photo(update, context) #És el que hi havia aqui
+        send_message(update, context) #És el que hi havia aqui
 
         # Send journey starting message:
         # OJO CARRERS DOBLES
@@ -142,6 +142,15 @@ def go(update, context):
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
+
+
+def zoom(update, context):
+    checkpoint = context.user_data['checkpoint']
+    directions = context.user_data['directions']
+
+    end = checkpoint + 3 if checkpoint + 3 < len(directions) else len(directions)-1
+
+    send_photo(update, context, directions[checkpoint:end], directions[end]['src'])
 
 
 def where(update, context):
@@ -180,7 +189,7 @@ def where(update, context):
 
         context.user_data['checkpoint'] += 1
 
-        send_photo(update, context)
+        send_message(update, context)
 
 
 def cancel(update, context):
@@ -196,22 +205,22 @@ def cancel(update, context):
 
 def send_message(update, context):
     """ ... """
-    send_photo(update, context)
+    checkpoint = context.user_data['checkpoint']
+    directions = context.user_data['directions']
+
+    send_photo(update, context, directions[checkpoint:])
     send_text(update, context)
 
 
-def send_photo(update, context):
+def send_photo(update, context, dir, destination=None):
     """ Generates, saves, sends, and deletes an image of journey """
     global bcn_map
     nick = str(update.effective_chat.username)
-    directions = context.user_data['directions']
     location = context.user_data['location']
-    sections = context.user_data['sections']
-    checkpoint = context.user_data['checkpoint']
-    destination = context.user_data['destination']
+    if destination is None:
+        destination = context.user_data['destination']
 
-
-    guide.plot_directions(bcn_map, location, destination, directions[checkpoint:], nick)
+    guide.plot_directions(bcn_map, location, destination, dir, nick)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(nick + '.png', 'rb'))
@@ -220,7 +229,7 @@ def send_photo(update, context):
 
 def send_text(update, context):
     """ ... """
-
+    pass
 
 def next(update, context):
     """Debugging command"""
@@ -257,6 +266,7 @@ dispatcher.add_handler(CommandHandler('cancel', cancel))
 dispatcher.add_handler(CommandHandler('language', language))
 dispatcher.add_handler(CommandHandler('conveyance', conveyance))
 dispatcher.add_handler(CommandHandler('next', next))
+dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 
 # engega el bot
