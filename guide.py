@@ -190,3 +190,7 @@ def marker_and_line_depending_on_section_type(section):
 
 def dist(a, b):
     return haversine(a, b, unit='m')
+
+
+def from_address(message):
+    return ox.geo_utils.geocode(message)
