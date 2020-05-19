@@ -81,6 +81,12 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     src = closest_node_to(graph, source_location)
     dst = closest_node_to(graph, destination_location)
 
+    src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
+    dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
+
+    src_length = dist(source_location, src_coord)
+    dst_length = dist(destination_location, dst_coord)
+
     # afegim les arestes i nodes extres per a arribar tant a l'usuari com al
     # destí per a facilitar-nos la feina a l'hora de transformar a seccions
     # recorrent una sola llista i no diferents trossos
@@ -163,7 +169,7 @@ def plot_directions(graph, source_location, destination_location, directions, fi
                 (section['mid'][1], section['mid'][0]), 'blue', 20))
 
     image = m.render()
-    image.save(filename + '.png')
+    image.save(str(filename) + '.png')
 
 
 def marker_and_line_depending_on_section_type(section):
@@ -190,3 +196,7 @@ def marker_and_line_depending_on_section_type(section):
 
 def dist(a, b):
     return haversine(a, b, unit='m')
+
+
+def from_address(message):
+    return ox.geo_utils.geocode(message)

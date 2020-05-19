@@ -103,37 +103,31 @@ def go(update, context):
     nick = update.effective_chat.username
 
     try:
-        location = context.user_data['location']
+        location = context.user_data['location']  # KeyError if not shared
 
         message = ''  # ' '.join(str(context.args))
         for i in range(len(context.args)):
             message += str(context.args[i] + ' ')
 
-        # INTENTAR REDUIR L'ÚS DEL ox AL guide.py UNICAMENT
-        # geocode retorna tupla (lat, long)
-        destination = context.user_data['destination'] = ox.geo_utils.geocode(
-            message)
-
-        # sp_nodes son nodes amb ID
-        sp_nodes = guide.get_directions(bcn_map, location, destination)
-        # directions is a list of dictionaries. Each dict is a section.
+        destination = guide.from_address(message)  # (lat, long)
+        sp_nodes = guide.get_directions(bcn_map, location, destination)  # ID
         directions = guide.from_path_to_directions(
-            bcn_map, sp_nodes, location, destination)
+            bcn_map, sp_nodes, location, destination)  # list of dict (sections)
 
-        context.user_data['directions'] = directions
+        # Save vars in user dictionary
+        context.user_data['destination'] = destination
         context.user_data['sp_nodes'] = sp_nodes
-        context.user_data['checkpoint'] = 0
+        context.user_data['directions'] = directions
+        context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-        # generem, guardem i enviem la imatge amb trejecte:
+        # Generate, save, send and delete image of journey:
         guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
-
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
-            photo=open(nick + '.png', 'rb'))
-        # eliminem la imatge del trejecte. Ja pensarem com ferho mes maco (ubi actual...)
-        os.remove(nick + '.png')
+            photo=open(str(nick) + '.png', 'rb'))
+        os.remove(str(nick) + '.png')
 
-        # enviem el primer tram al usuari:
+        # Send journey starting message:
         # OJO CARRERS DOBLES
         info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint 1️ ⃣:    " + str(
             directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
@@ -143,6 +137,7 @@ def go(update, context):
 
     except KeyError:  # any location has been shared
         print('KeyError')
+
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
@@ -170,17 +165,18 @@ def where(update, context):
     directions = context.user_data['directions']
     mid = directions[check]['mid']
 
-    if guide.dist(loc, mid) <= 20:
+    if guide.dist(loc, mid) <= 20:  # user near next checkpoint
         check += 1
 
-        info = 'Molt bé: has arribat al Checkpoint  # %d!\n
-        Estàs a % s\n
-        Ves al Chekpoint  # %d: %s(%s) longitud:\n
-        angle: \n'
+        info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
+        Estàs a % s\n \
+        Ves al Chekpoint  # %d: %s(%s) longitud:\n \
+        angle: \n' \
         % (
             check,
             str(directions[check]['src']),
-            check+1, str(directions[check]['mid']),
+            check+1,
+            str(directions[check]['mid']),
             str(directions[check]['next_name'])
         )
 
@@ -196,11 +192,14 @@ def cancel(update, context):
     nick = update.effective_chat.username
     print("canceled by", nick)
 
-    del context.user_data['directions'], context.user_data['destination']
+    # Reset initial conditions:
+    del context.user_data['directions']
+    del context.user_data['destination']
     context.user_data['checkpoint'] = 0
 
 
 def next(update, context):
+    """Debugging command"""
     check = context.user_data['checkpoint']
     mid = context.user_data['directions'][check]['mid']
     next = (mid[0] - 0.0001, mid[1] - 0.0001)
