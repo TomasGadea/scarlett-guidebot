@@ -127,8 +127,8 @@ def go(update, context):
         guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
-            photo=open(nick + '.png', 'rb'))
-        os.remove(nick + '.png')
+            photo=open(str(nick) + '.png', 'rb'))
+        os.remove(str(nick) + '.png')
 
         # Send journey starting message:
         # OJO CARRERS DOBLES
@@ -171,10 +171,10 @@ def where(update, context):
     if guide.dist(loc, mid) <= 20:  # user near next checkpoint
         check += 1
 
-        info = 'Molt bé: has arribat al Checkpoint  # %d!\n
-        Estàs a % s\n
-        Ves al Chekpoint  # %d: %s(%s) longitud:\n
-        angle: \n'
+        info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
+        Estàs a % s\n \
+        Ves al Chekpoint  # %d: %s(%s) longitud:\n \
+        angle: \n' \
         % (
             check,
             str(directions[check]['src']),
