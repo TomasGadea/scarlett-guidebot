@@ -110,22 +110,21 @@ def go(update, context):
             message += str(context.args[i] + ' ')
 
         destination = guide.from_address(message)  # (lat, long)
-        sp_nodes = guide.get_directions(bcn_map, location, destination)  # ID
-        directions = guide.from_path_to_directions(
-            bcn_map, sp_nodes, location, destination)  # list of dict (sections)
+        directions = guide.get_directions(bcn_map, location, destination)  # ID
+        sections = guide.from_directions_to_sections(
+            bcn_map, directions, location, destination)  # list of dict (sections)
 
         # Save vars in user dictionary
         context.user_data['destination'] = destination
-        context.user_data['sp_nodes'] = sp_nodes
         context.user_data['directions'] = directions
+        context.user_data['sections'] = sections
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
         send_photo(update, context) #És el que hi havia aqui
 
         # Send journey starting message:
         # OJO CARRERS DOBLES
-        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint 1️ ⃣:    " + str(
-            directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
+        info = "Estàs a " + str(sections[0]['src']) + "\nComença al Checkpoint #1:    " + str(sections[0]['mid']) + '\n(' + sections[0]['next_name'] + ')'
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=info)
@@ -157,10 +156,10 @@ def where(update, context):
         loc = context.user_data['location']
 
     check = context.user_data['checkpoint']
-    directions = context.user_data['directions']
-    mid = directions[check]['mid']
+    sections = context.user_data['sections']
+    mid = sections[check]['mid']
 
-    if guide.dist(loc, mid) <= 20:  # user near next checkpoint
+    if guide.dist(loc, mid) <= 20: # user near next checkpoint
         check += 1
 
         info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
@@ -169,10 +168,10 @@ def where(update, context):
         angle: \n' \
         % (
             check,
-            str(directions[check]['src']),
+            str(sections[check]['src']),
             check+1,
-            str(directions[check]['mid']),
-            str(directions[check]['next_name'])
+            str(sections[check]['mid']),
+            str(sections[check]['next_name'])
         )
 
         context.bot.send_message(
@@ -181,14 +180,16 @@ def where(update, context):
 
         context.user_data['checkpoint'] += 1
 
+        send_photo(update, context)
+
 
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
-    nick = update.effective_chat.username
+    nick = str(update.effective_chat.username)
     print("canceled by", nick)
 
     # Reset initial conditions:
-    del context.user_data['directions']
+    del context.user_data['sections']
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
 
@@ -203,11 +204,14 @@ def send_photo(update, context):
     """ Generates, saves, sends, and deletes an image of journey """
     global bcn_map
     nick = str(update.effective_chat.username)
-    sp_nodes = context.user_data['sp_nodes']
+    directions = context.user_data['directions']
     location = context.user_data['location']
+    sections = context.user_data['sections']
+    checkpoint = context.user_data['checkpoint']
     destination = context.user_data['destination']
 
-    guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
+
+    guide.plot_directions(bcn_map, location, destination, directions[checkpoint:], nick)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(nick + '.png', 'rb'))
@@ -221,7 +225,7 @@ def send_text(update, context):
 def next(update, context):
     """Debugging command"""
     check = context.user_data['checkpoint']
-    mid = context.user_data['directions'][check]['mid']
+    mid = context.user_data['sections'][check]['mid']
     next = (mid[0] - 0.0001, mid[1] - 0.0001)
     context.user_data['location'] = next
 

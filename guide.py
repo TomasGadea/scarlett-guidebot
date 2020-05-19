@@ -74,7 +74,8 @@ def closest_node_to(graph, source_location):
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
-def from_path_to_directions(graph, sp_nodes, source_location, destination_location):
+def from_directions_to_sections(graph, directions, source_location, destination_location):
+    #from_path_to_directions
     """ Returns the transformation from a path (represented as a list of nodes)
         to directions in their correct format """
 
@@ -91,38 +92,38 @@ def from_path_to_directions(graph, sp_nodes, source_location, destination_locati
     # destí per a facilitar-nos la feina a l'hora de transformar a seccions
     # recorrent una sola llista i no diferents trossos
 
-    sp_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(
-        graph, sp_nodes) + [(dst, destination_location, {'length': dst_length})]
-    sp_nodes = [source_location] + \
+    directions_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(
+        graph, directions) + [(dst, destination_location, {'length': dst_length})]
+    directions = [source_location] + \
         [id_to_coord_tuple(graph, node)
-         for node in sp_nodes] + [destination_location]
+         for node in directions] + [destination_location]
 
-    n = len(sp_nodes)
-    directions = [section(graph, sp_edges, sp_nodes, i, n) for i, node
-                  in enumerate(sp_nodes) if i < n - 1]
-    return directions  # is a list of dictionaries
+    n = len(directions)
+    sections = [section(graph, directions_edges, directions, i, n) for i, node
+                  in enumerate(directions) if i < n - 1]
+    return sections  # is a list of dictionaries
 
 
-def section(graph, sp_edges, sp_nodes, i, n):
+def section(graph, directions_edges, directions, i, n):
     """ From a list that represents a path of n nodes and its relative in edges
         returns the section (dictionary) that starts in the node i of the list """
-    section = {'angle': angle(sp_edges, i, n),
-               # podriem fer sp_nodes[i] ja que sp_nodes ja és la llista de tuples?
-               'src': (sp_nodes[i][0], sp_nodes[i][1]),
-               'mid': (sp_nodes[i + 1][0], sp_nodes[i + 1][1])}
+    section = {'angle': angle(directions_edges, i, n),
+               # podriem fer directions[i] ja que directions ja és la llista de tuples?
+               'src': (directions[i][0], directions[i][1]),
+               'mid': (directions[i + 1][0], directions[i + 1][1])}
 
     if i + 2 <= n - 1:
-        section['dst'] = (sp_nodes[i + 2][0], sp_nodes[i + 2][1])
+        section['dst'] = (directions[i + 2][0], directions[i + 2][1])
 
-        section['next_name'] = obtain_name_of(sp_edges[i + 1])
+        section['next_name'] = obtain_name_of(directions_edges[i + 1])
 
     else:
         section['dst'], section['next_name'] = None, None
 
-    section['current_name'] = obtain_name_of(sp_edges[i])
+    section['current_name'] = obtain_name_of(directions_edges[i])
 
-    if 'length' in sp_edges[i]:
-        section['length'] = sp_edges[i]['length']
+    if 'length' in directions_edges[i]:
+        section['length'] = directions_edges[i]['length']
     else:
         section['length'] = None
 
@@ -148,22 +149,22 @@ def id_to_coord_tuple(graph, node):
     return node
 
 
-def angle(sp_edges, i, n):
-    """ Returns the angle of edges i and i + 1 in sp_edges if we can
+def angle(directions_edges, i, n):
+    """ Returns the angle of edges i and i + 1 in directions_edges if we can
         calculate it. """
-    if i >= n-1 or not 'bearing' in sp_edges[i] or not 'bearing' in sp_edges[i + 1]:
+    if i >= n-1 or not 'bearing' in directions_edges[i] or not 'bearing' in directions_edges[i + 1]:
         return None
-    return sp_edges[i + 1]['bearing'] - sp_edges[i]['bearing']
+    return directions_edges[i + 1]['bearing'] - directions_edges[i]['bearing']
 
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
-    """ Plots and saves the route from source_location to destination_location described
+    """ Plots and saves the sections from source_location to destination_location described
         by directions in a file named filename.png """
-    route = from_path_to_directions(
+    sections = from_directions_to_sections(
         graph, directions, source_location, destination_location)
 
     m = StaticMap(width, height)
-    for section in route:
+    for section in sections:
 
         marker, line = marker_and_line_depending_on_section_type(section)
         m.add_marker(marker)
