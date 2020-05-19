@@ -120,12 +120,7 @@ def go(update, context):
         context.user_data['directions'] = directions
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-        # Generate, save, send and delete image of journey:
-        guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
-        context.bot.send_photo(
-            chat_id=update.effective_chat.id,
-            photo=open(str(nick) + '.png', 'rb'))
-        os.remove(str(nick) + '.png')
+        send_photo(update, context) #És el que hi havia aqui
 
         # Send journey starting message:
         # OJO CARRERS DOBLES
@@ -196,6 +191,31 @@ def cancel(update, context):
     del context.user_data['directions']
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
+
+
+def send_message(update, context):
+    """ ... """
+    send_photo(update, context)
+    send_text(update, context)
+
+
+def send_photo(update, context):
+    """ Generates, saves, sends, and deletes an image of journey """
+    global bcn_map
+    nick = str(update.effective_chat.username)
+    sp_nodes = context.user_data['sp_nodes']
+    location = context.user_data['location']
+    destination = context.user_data['destination']
+
+    guide.plot_directions(bcn_map, location, destination, sp_nodes, nick)
+    context.bot.send_photo(
+        chat_id=update.effective_chat.id,
+        photo=open(nick + '.png', 'rb'))
+    os.remove(nick + '.png')
+
+
+def send_text(update, context):
+    """ ... """
 
 
 def next(update, context):

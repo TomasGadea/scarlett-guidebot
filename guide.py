@@ -114,17 +114,12 @@ def section(graph, sp_edges, sp_nodes, i, n):
     if i + 2 <= n - 1:
         section['dst'] = (sp_nodes[i + 2][0], sp_nodes[i + 2][1])
 
-        if 'name' in sp_edges[i + 1]:
-            section['next_name'] = sp_edges[i + 1]['name']
-        else:
-            section['next_name'] = None
+        section['next_name'] = obtain_name_of(sp_edges[i + 1])
+
     else:
         section['dst'], section['next_name'] = None, None
 
-    if 'name' in sp_edges[i]:
-        section['current_name'] = sp_edges[i]['name']
-    else:
-        section['current_name'] = None
+    section['current_name'] = obtain_name_of(sp_edges[i])
 
     if 'length' in sp_edges[i]:
         section['length'] = sp_edges[i]['length']
@@ -132,6 +127,16 @@ def section(graph, sp_edges, sp_nodes, i, n):
         section['length'] = None
 
     return section
+
+
+def obtain_name_of(street):
+    """ Returns the name of the street represented by the edge street if exists """
+    if 'name' in street:
+        if isinstance(street['name'], str):
+            return street['name']
+        elif isinstance(street['name'], list):
+            return street['name'][0]
+    return None
 
 
 def id_to_coord_tuple(graph, node):
