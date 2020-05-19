@@ -100,7 +100,7 @@ def go(update, context):
 # Suposem que només ens movem per Barcelona.
     global bcn_map
     user = update.effective_chat.first_name
-    nick = update.effective_chat.username
+    nick = str(update.effective_chat.username)
 
     try:
         location = context.user_data['location']  # KeyError if not shared
@@ -109,23 +109,19 @@ def go(update, context):
         for i in range(len(context.args)):
             message += str(context.args[i] + ' ')
 
-        destination = guide.from_address(message)  # (lat, long)
-        directions = guide.get_directions(bcn_map, location, destination)  # ID
-        sections = guide.from_directions_to_sections(
-            bcn_map, directions, location, destination)  # list of dict (sections)
+        destination = guide.address_coord(message)  # (lat, long)
+        directions = guide.get_directions(bcn_map, location, destination)  # dict
 
         # Save vars in user dictionary
         context.user_data['destination'] = destination
         context.user_data['directions'] = directions
-        context.user_data['sections'] = sections
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
         send_message(update, context)  # És el que hi havia aqui
 
         # Send journey starting message:
-        # OJO CARRERS DOBLES
-        info = "Estàs a " + str(sections[0]['src']) + "\nComença al Checkpoint #1:    " + str(
-            sections[0]['mid']) + '\n(' + sections[0]['next_name'] + ')'
+        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint #1:    " + str(
+            directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=info)
@@ -146,23 +142,17 @@ def go(update, context):
 
 
 def zoom(update, context):
-    print("dins de zoom")
     try:
         check = context.user_data['checkpoint']
-        print('z1')
-        sections = context.user_data['sections']
-        print('z2')
         directions = context.user_data['directions']
 
-        end = check + 3 if check + 3 < len(sections) else len(sections)-1
-        print('z3')
+        n = len(directions)
 
-        dir = directions[check:end]
-        print('z4')
-        destination = sections[end]['src']
-        print('z5')
-        send_photo(update, context, dir, destination)
-        print('z6')
+        end = check+3 if check+3 < n else n-1
+
+        zoom_dir = directions[check:end] # zoomed/chopped directions
+
+        send_photo(update, context, zoom_dir)
 
     except Exception:
         print(traceback.format_exc())
@@ -183,8 +173,8 @@ def where(update, context):
         loc = context.user_data['location']
 
     check = context.user_data['checkpoint']
-    sections = context.user_data['sections']
-    mid = sections[check]['mid']
+    directions = context.user_data['directions']
+    mid = directions[check]['mid']
 
     if guide.dist(loc, mid) <= 20:  # user near next checkpoint
         check += 1
@@ -195,10 +185,10 @@ def where(update, context):
         angle: \n' \
         % (
             check,
-            str(sections[check]['src']),
+            str(directions[check]['src']),
             check+1,
-            str(sections[check]['mid']),
-            str(sections[check]['next_name'])
+            str(directions[check]['mid']),
+            str(directions[check]['next_name'])
         )
 
         context.user_data['checkpoint'] += 1
@@ -216,7 +206,7 @@ def cancel(update, context):
     print("canceled by", nick)
 
     # Reset initial conditions:
-    del context.user_data['sections']
+    del context.user_data['directions']
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
 
@@ -230,29 +220,22 @@ def send_message(update, context):
     #send_text(update, context)
 
 
-def send_photo(update, context, dir, destination=None):
+def send_photo(update, context, directions):
     """ Generates, saves, sends, and deletes an image of journey """
-    print("dins de send photo")
-    global bcn_map
-    print(1)
-    nick = str(update.effective_chat.username)
-    print(2)
-    location = context.user_data['location']
-    print(3)
-    if destination is None:
-        print(4)
-        destination = context.user_data['destination']
-        print(5)
 
-    print(6)
-    guide.plot_directions(bcn_map, location, destination, dir, nick)
-    print(7)
+    global bcn_map
+    nick = str(update.effective_chat.username)
+
+    location = context.user_data['location']
+    destination = context.user_data['destination']
+
+    guide.plot_directions(bcn_map, location, destination, directions, nick)
+
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
-        photo=open(nick + '.png', 'rb'))
-    print(8)
+        photo=open(str(nick) + '.png', 'rb'))
+
     os.remove(nick + '.png')
-    print(9)
 
 
 def send_text(update, context):
@@ -263,7 +246,7 @@ def send_text(update, context):
 def next(update, context):
     """Debugging command"""
     check = context.user_data['checkpoint']
-    mid = context.user_data['sections'][check]['mid']
+    mid = context.user_data['directions'][check]['mid']
     next = (mid[0] - 0.0001, mid[1] - 0.0001)
     context.user_data['location'] = next
 
@@ -301,6 +284,3 @@ dispatcher.add_handler(MessageHandler(Filters.location, where))
 
 # engega el bot
 updater.start_polling()
-
-
-# commit petit

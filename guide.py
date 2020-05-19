@@ -64,7 +64,10 @@ def get_directions(graph, source_location, destination_location):
     src = closest_node_to(graph, source_location)
     dst = closest_node_to(graph, destination_location)
 
-    return nx.shortest_path(graph, src, dst)  # nodes with ID
+    sp_nodes = nx.shortest_path(graph, src, dst)  # nodes with ID
+
+    return from_path_to_directions(graph, sp_nodes, source_location, destination_location)
+    # returns list of dict.
 
 
 def closest_node_to(graph, source_location):
@@ -74,13 +77,12 @@ def closest_node_to(graph, source_location):
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 
-def from_directions_to_sections(graph, directions, source_location, destination_location):
-    # from_path_to_directions
+def from_path_to_directions(graph, sp_nodes, source_location, destination_location):
     """ Returns the transformation from a path (represented as a list of nodes)
         to directions in their correct format """
 
-    src = closest_node_to(graph, source_location)
-    dst = closest_node_to(graph, destination_location)
+    src = sp_nodes[0]
+    dst = sp_nodes[-1]
 
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
@@ -92,38 +94,59 @@ def from_directions_to_sections(graph, directions, source_location, destination_
     # destí per a facilitar-nos la feina a l'hora de transformar a seccions
     # recorrent una sola llista i no diferents trossos
 
-    directions_edges = [(source_location, src, {'length': src_length})] + ox.geo_utils.get_route_edge_attributes(
-        graph, directions) + [(dst, destination_location, {'length': dst_length})]
-    directions = [source_location] + \
-        [id_to_coord_tuple(graph, node)
-         for node in directions] + [destination_location]
+    edges = \
+        [(source_location, src_coord, {'length': src_length})] + \
+        ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + \
+        [(dst_coord, destination_location, {'length': dst_length})]
 
-    n = len(directions)
-    sections = [section(graph, directions_edges, directions, i, n) for i, node
-                in enumerate(directions) if i < n - 1]
-    return sections  # is a list of dictionaries
+    coord_nodes = \
+        [source_location] + \
+        [id_coord(graph, node) for node in sp_nodes] + \
+        [destination_location]
+
+    n = len(coord_nodes)
+
+    # enumerate coord_nodes returns (0, (1,2)), (1, (3,4))...
+    # but we are only interested in (0, 1, ...)
+    # so we select i[0]
+    directions = \
+        [section(edges, coord_nodes, i[0], n)
+         for i in enumerate(coord_nodes) if i[0] < n - 1]
+
+    return directions  # is a list of dictionaries
 
 
-def section(graph, directions_edges, directions, i, n):
+def id_coord(graph, node):
+    # id_to_coord
+    """ Given a graph and a node (in form of coordinates or id) returns the geo
+        coordinates of that node in form of a tuple """
+    if not isinstance(node, tuple):
+        return (graph.nodes[node]['y'], graph.nodes[node]['x'])
+
+    return node
+
+
+def section(edges, coord_nodes, i, n):
     """ From a list that represents a path of n nodes and its relative in edges
         returns the section (dictionary) that starts in the node i of the list """
-    section = {'angle': angle(directions_edges, i, n),
+    section = {'angle': angle(edges, i, n),
                # podriem fer directions[i] ja que directions ja és la llista de tuples?
-               'src': (directions[i][0], directions[i][1]),
-               'mid': (directions[i + 1][0], directions[i + 1][1])}
+               'src': coord_nodes[i],
+               'mid': (coord_nodes[i + 1])}
 
     if i + 2 <= n - 1:
-        section['dst'] = (directions[i + 2][0], directions[i + 2][1])
+        section['dst'] = coord_nodes[i + 2]
 
-        section['next_name'] = obtain_name_of(directions_edges[i + 1])
+        section['next_name'] = obtain_name_of(edges[i + 1])
 
     else:
-        section['dst'], section['next_name'] = None, None
+        section['dst'] = None
+        section['next_name'] = None
 
-    section['current_name'] = obtain_name_of(directions_edges[i])
+    section['current_name'] = obtain_name_of(edges[i])
 
-    if 'length' in directions_edges[i]:
-        section['length'] = directions_edges[i]['length']
+    if 'length' in edges[i]:
+        section['length'] = edges[i]['length']
     else:
         section['length'] = None
 
@@ -140,69 +163,69 @@ def obtain_name_of(street):
     return None
 
 
-def id_to_coord_tuple(graph, node):
-    """ Given a graph and a node (in form of coordinates or id) returns the geo
-        coordinates of that node in form of a tuple """
-    if not isinstance(node, tuple):
-        return (graph.nodes[node]['y'], graph.nodes[node]['x'])
-
-    return node
-
-
-def angle(directions_edges, i, n):
-    """ Returns the angle of edges i and i + 1 in directions_edges if we can
+def angle(edges, i, n):
+    """ Returns the angle of edges i and i + 1 in edges if we can
         calculate it. """
-    if i >= n-1 or not 'bearing' in directions_edges[i] or not 'bearing' in directions_edges[i + 1]:
+    if i >= n-1 or not 'bearing' in edges[i] or not 'bearing' in edges[i + 1]:
         return None
-    return directions_edges[i + 1]['bearing'] - directions_edges[i]['bearing']
+    return edges[i + 1]['bearing'] - edges[i]['bearing']
 
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
     """ Plots and saves the sections from source_location to destination_location described
         by directions in a file named filename.png """
-    sections = from_directions_to_sections(
-        graph, directions, source_location, destination_location)
 
     m = StaticMap(width, height)
-    for section in sections:
 
-        marker, line = marker_and_line_depending_on_section_type(section)
+    for i in enumerate(directions):
+
+        # we are only interested in i[0]
+        i[0] # already starts with i[0] = 0
+        marker, line = marker_line(directions, i[0])
         m.add_marker(marker)
-        m.add_line(line)
-
-        if section['dst'] is None:
-            m.add_marker(CircleMarker(
-                (section['mid'][1], section['mid'][0]), 'blue', 20))
+        if line is not None:
+            m.add_line(line)
 
     image = m.render()
     image.save(str(filename) + '.png')
 
 
-def marker_and_line_depending_on_section_type(section):
+def marker_line(directions, i):
     """ Returns one line and marker with diferent caracteristics depending on
         the type of the section given """
-    # section['src'] ja es una tupla?
-    src = (section['src'][1], section['src'][0])
-    dst = (section['mid'][1], section['mid'][0])
-    coordinates = [[src[0], src[1]], [dst[0], dst[1]]]
 
-    # pot ser que marqui blau en mig del recorregut? (Passem per carrerons sense nom)
-    if section['current_name'] is None:
-        if section['next_name'] is not None:
-            marker = CircleMarker(src, 'blue', 20)
-            line = Line(coordinates, 'blue', 4)
-        else:
-            marker = CircleMarker(src, 'red', 10)
-            line = Line(coordinates, 'blue', 4)
+    lat1 = directions[i]['src'][0]
+    long1 = directions[i]['src'][1]
+
+    lat2 = directions[i]['mid'][0]
+    long2 = directions[i]['mid'][1]
+
+    diff = ((long1, lat1), (long2, lat2))
+
+    n = len(directions)
+
+    if i == 0:
+        marker = CircleMarker((long1, lat1), 'blue', 20)
+        line = Line(diff, 'red', 4)
+    elif i == n - 2:
+        marker = CircleMarker((long1, lat1), 'red', 10)
+        line = Line(diff, 'red', 4)
+    elif i == n - 1:
+        marker = CircleMarker((long1, lat1), 'blue', 20)
+        line = None
     else:
-        marker = CircleMarker(src, 'red', 10)
-        line = Line(coordinates, 'red', 4)
+        marker = CircleMarker((long1, lat1), 'red', 10)
+        line = Line(diff, 'red', 4)
+
     return marker, line
 
 
 def dist(a, b):
+    """ Returns the geografical distance from a=(lat,long) to b=(lat,long)"""
     return haversine(a, b, unit='m')
 
 
-def from_address(message):
-    return ox.geo_utils.geocode(message)
+def address_coord(address):
+    # from_address
+    """ Returns (lat, long) of a point given by an address """
+    return ox.geo_utils.geocode(address)
