@@ -75,7 +75,7 @@ def closest_node_to(graph, source_location):
 
 
 def from_directions_to_sections(graph, directions, source_location, destination_location):
-    #from_path_to_directions
+    # from_path_to_directions
     """ Returns the transformation from a path (represented as a list of nodes)
         to directions in their correct format """
 
@@ -100,7 +100,7 @@ def from_directions_to_sections(graph, directions, source_location, destination_
 
     n = len(directions)
     sections = [section(graph, directions_edges, directions, i, n) for i, node
-                  in enumerate(directions) if i < n - 1]
+                in enumerate(directions) if i < n - 1]
     return sections  # is a list of dictionaries
 
 

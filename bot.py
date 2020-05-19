@@ -120,11 +120,12 @@ def go(update, context):
         context.user_data['sections'] = sections
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-        send_message(update, context) #És el que hi havia aqui
+        send_message(update, context)  # És el que hi havia aqui
 
         # Send journey starting message:
         # OJO CARRERS DOBLES
-        info = "Estàs a " + str(sections[0]['src']) + "\nComença al Checkpoint #1:    " + str(sections[0]['mid']) + '\n(' + sections[0]['next_name'] + ')'
+        info = "Estàs a " + str(sections[0]['src']) + "\nComença al Checkpoint #1:    " + str(
+            sections[0]['mid']) + '\n(' + sections[0]['next_name'] + ')'
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=info)
@@ -145,12 +146,26 @@ def go(update, context):
 
 
 def zoom(update, context):
-    checkpoint = context.user_data['checkpoint']
-    directions = context.user_data['directions']
+    print("dins de zoom")
+    try:
+        check = context.user_data['checkpoint']
+        print('z1')
+        sections = context.user_data['sections']
+        print('z2')
+        directions = context.user_data['directions']
 
-    end = checkpoint + 3 if checkpoint + 3 < len(directions) else len(directions)-1
+        end = check + 3 if check + 3 < len(sections) else len(sections)-1
+        print('z3')
 
-    send_photo(update, context, directions[checkpoint:end], directions[end]['src'])
+        dir = directions[check:end]
+        print('z4')
+        destination = sections[end]['src']
+        print('z5')
+        send_photo(update, context, dir, destination)
+        print('z6')
+
+    except Exception:
+        print(traceback.format_exc())
 
 
 def where(update, context):
@@ -168,7 +183,7 @@ def where(update, context):
     sections = context.user_data['sections']
     mid = sections[check]['mid']
 
-    if guide.dist(loc, mid) <= 20: # user near next checkpoint
+    if guide.dist(loc, mid) <= 20:  # user near next checkpoint
         check += 1
 
         info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
@@ -205,31 +220,42 @@ def cancel(update, context):
 
 def send_message(update, context):
     """ ... """
-    checkpoint = context.user_data['checkpoint']
+    check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
-    send_photo(update, context, directions[checkpoint:])
-    send_text(update, context)
+    send_photo(update, context, directions[check:])
+    #send_text(update, context)
 
 
 def send_photo(update, context, dir, destination=None):
     """ Generates, saves, sends, and deletes an image of journey """
+    print("dins de send photo")
     global bcn_map
+    print(1)
     nick = str(update.effective_chat.username)
+    print(2)
     location = context.user_data['location']
+    print(3)
     if destination is None:
+        print(4)
         destination = context.user_data['destination']
+        print(5)
 
+    print(6)
     guide.plot_directions(bcn_map, location, destination, dir, nick)
+    print(7)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(nick + '.png', 'rb'))
+    print(8)
     os.remove(nick + '.png')
+    print(9)
 
 
 def send_text(update, context):
     """ ... """
     pass
+
 
 def next(update, context):
     """Debugging command"""
