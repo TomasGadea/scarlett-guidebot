@@ -1,7 +1,6 @@
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
-import osmnx as ox
 import os
 import traceback
 

@@ -3,7 +3,6 @@ import osmnx as ox
 from haversine import haversine
 from staticmap import StaticMap, Line, CircleMarker
 import pickle
-import matplotlib.pyplot as plt
 
 
 def download_graph(place):
@@ -47,15 +46,13 @@ def print_graph(graph):
 
     print(nx.info(graph))
 
-    # for node1, info1 in graph.nodes.items():
-    #     print(node1, info1)
-    #     for node2, info2 in graph.adj[node1].items():
-    #         print('    ', node2)
-    #         edge = info2[0]
-    #         print('        ', edge)
-    #
-    # ox.plot_graph(graph)
-    # plt.show()
+    for node1, info1 in graph.nodes.items():
+        print(node1, info1)
+        for node2, info2 in graph.adj[node1].items():
+            print('    ', node2)
+            edge = info2[0]
+            print('        ', edge)
+
 
 
 def get_directions(graph, source_location, destination_location):
@@ -129,6 +126,7 @@ def id_coord(graph, node):
 def section(edges, coord_nodes, i, n):
     """ From a list that represents a path of n nodes and its relative in edges
         returns the section (dictionary) that starts in the node i of the list """
+
     section = {'angle': angle(edges, i, n),
                # podriem fer directions[i] ja que directions ja és la llista de tuples?
                'src': coord_nodes[i],
@@ -143,7 +141,7 @@ def section(edges, coord_nodes, i, n):
         section['dst'] = None
         section['next_name'] = None
 
-    section['current_name'] = obtain_name_of(edges[i])
+    section['current_name'] = get_name_of(edges[i])
 
     if 'length' in edges[i]:
         section['length'] = edges[i]['length']
@@ -153,7 +151,7 @@ def section(edges, coord_nodes, i, n):
     return section
 
 
-def obtain_name_of(street):
+def get_name_of(street):
     """ Returns the name of the street represented by the edge street if exists """
     if 'name' in street:
         if isinstance(street['name'], str):
@@ -180,7 +178,6 @@ def plot_directions(graph, source_location, destination_location, directions, fi
     for i in enumerate(directions):
 
         # we are only interested in i[0]
-        i[0] # already starts with i[0] = 0
         marker, line = marker_line(directions, i[0])
         m.add_marker(marker)
         if line is not None:
@@ -206,9 +203,6 @@ def marker_line(directions, i):
 
     if i == 0:
         marker = CircleMarker((long1, lat1), 'blue', 20)
-        line = Line(diff, 'red', 4)
-    elif i == n - 2:
-        marker = CircleMarker((long1, lat1), 'red', 10)
         line = Line(diff, 'red', 4)
     elif i == n - 1:
         marker = CircleMarker((long1, lat1), 'blue', 20)
