@@ -212,19 +212,21 @@ def send_mid_text(update, context, check):
     check,
     str(directions[check]['src']),
     check+1,
-    str(directions[check]['mid'])
+    str(directions[check]['mid']) + '\n'
     )
+    info = append_angle(directions, check, info)
+    # info = append_meters(directions, cehck, info)
 
     if directions[check]['next_name'] is not None:
-        info += directions[check]['next_name'] + '\n'
-    info = append_angle(directions, check, info)
-    #info = append_meters(directions, cehck, info)
+        info += ' per ' + directions[check]['next_name'] + '\n'
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=info)
 
+
 def append_angle(directions, check, info):
+
     n = len(directions)
     if check <= 1 or check >= n:
         a = 0   # Assume first and last angle is 0
@@ -232,25 +234,35 @@ def append_angle(directions, check, info):
         a = directions[check]['angle']
 
     if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
-        info += "turn half right \n"
+        info += "Gira lleugerament a la dreta "
     elif 67.5 <= a <= 112.5 or -292.5 <= a <= -247.5:
-        info += "turn right \n"
+        info += "Gira a la dreta "
     elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
-        info += "turn strong right \n"
+        info += "Gira pronunciadament a la dreta "
 
 
     elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
-        info += "turn half left \n"
+        info += "Gira lleugerament a l'esquerra "
     elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
-        info += "turn left \n"
+        info += "Gira a l'esquerra "
     elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
-        info += "turn strong left \n"
+        info += "Gira pronunciadament a l'esquerra "
 
     else:
-        info += "go straight through \n"
+        info += "Segueix recte "
 
     return info
 
+
+# def append_meters(directions, cehck, info):
+#     try:
+#         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
+#             info += 'i avança ' + directions[check]['length'] + ' metres'
+#
+#         return info
+#
+#     except Exception as e:
+#         print(traceback.format_exc())
 
 def next(update, context):
     """Debugging command"""
