@@ -246,23 +246,6 @@ def append_angle(directions, check, info):
     elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
         info += "turn strong left \n"
 
-
-    # elif -157.5 <= a <= -112.5:
-    #     info += "turn strong left \n"
-    # elif -112.5 <= a <= -67.5:
-    #     info += "turn left \n"
-    # elif -67.5 <= a <= -22.5:
-    #     info += "turn half left \n"
-    #
-    #
-    # elif -337.5 <= a <= -292.5:
-    #     info += "turn half right \n"
-    # elif -292.5 <= a <= -247.5:
-    #     info += "turn right \n"
-    # elif -202.5 <= a <= -157.5:
-    #     info += "turn strong right \n"
-
-
     else:
         info += "go straight through \n"
 
