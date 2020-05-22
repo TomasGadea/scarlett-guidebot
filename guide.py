@@ -135,7 +135,7 @@ def section(edges, coord_nodes, i, n):
     if i + 2 <= n - 1:
         section['dst'] = coord_nodes[i + 2]
 
-        section['next_name'] = obtain_name_of(edges[i + 1])
+        section['next_name'] = get_name_of(edges[i + 1])
 
     else:
         section['dst'] = None

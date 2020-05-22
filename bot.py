@@ -3,21 +3,35 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
 import os
 import traceback
+import numpy as np
 
-bcn_map = None
+# Constants:
+city = "Barcelona"
+distance = 20  # max distance from user to checkpoint to consider him near it.
+#-------------------------------------------------------------------------------
+
+# Global variables:
+map = None   # variable to store the map/graph of the city
+
+TOKEN = open('token.txt').read().strip()
+updater = Updater(token=TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+#-------------------------------------------------------------------------------
 
 
-def init_bcn_map():
-    """ Descarrega i guarda el mapa de Barcelona, si ja existeix simplement el carrega. """
-    global bcn_map
+def init_map(city):
+    """ Descarrega i guarda el mapa de city, si ja existeix simplement el carrega. """
+    global map
     try:
-        bcn_map = guide.load_graph("bcn_map")
+        map = guide.load_graph(city + "_map")
     except FileNotFoundError:
-        bcn_map = guide.download_graph("Barcelona, Spain")
-        guide.save_graph(bcn_map, "bcn_map")
+        print("downloading...")
+        map = guide.download_graph(city)
+        guide.save_graph(map, city + "_map")
+        print("downloaded!")
 
 
-init_bcn_map()
+init_map(city)
 
 
 def start(update, context):
@@ -40,44 +54,6 @@ def help(update, context):
         text=help_message)
 
 
-def language(update, context):
-    """ ... """
-    user = update.effective_chat.first_name
-
-    language = str(context.args[0])
-    try:
-        pass
-    except Exception as e:
-        print(e)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Em sap greu %s, encara no estic preparada per parlar en %s\nSegueixo en desenvolupament⚙️" % (user, language))
-
-
-def conveyance(update, context):
-    """ ... """
-    user = update.effective_chat.first_name
-
-    conveyance = str(context.args[0])
-    try:
-        if conveyance == 'cotxe':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en cotxe!🚗')
-        elif conveyance == 'caminant':
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Perfecte anem en caminant!🚶‍♂️')
-        else:
-            raise Exception
-
-    except Exception as e:
-        print(e)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Em sap greu %s, encara no estic preparada per a ajudar-te a desplaçarte en %s\nSegueixo en desenvolupament⚙️" % (user, conveyance))
-
-
 def author(update, context):
     """ Mostra el nom dels autors del projecte. """
     info = '''
@@ -97,9 +73,7 @@ Els meus creadors són:
 def go(update, context):
     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
 # Suposem que només ens movem per Barcelona.
-    global bcn_map
-    user = update.effective_chat.first_name
-    nick = str(update.effective_chat.username)
+    global map
 
     try:
         location = context.user_data['location']  # KeyError if not shared
@@ -109,7 +83,7 @@ def go(update, context):
             message += str(context.args[i] + ' ')
 
         destination = guide.address_coord(message)  # (lat, long)
-        directions = guide.get_directions(bcn_map, location, destination)  # dict
+        directions = guide.get_directions(map, location, destination)  # dict
 
         # Save vars in user dictionary
         context.user_data['destination'] = destination
@@ -163,6 +137,8 @@ def zoom(update, context):
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
 
+    print("in where")
+
     if 'location' not in context.user_data or not context.user_data['test']:
         message = update.edited_message if update.edited_message else update.message
         loc = context.user_data['location'] = (
@@ -173,10 +149,20 @@ def where(update, context):
 
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
-    mid = directions[check]['mid']
 
-    if guide.dist(loc, mid) <= 20:  # user near next checkpoint
-        check += 1
+    print("calculating dist list")
+    dist_list = [guide.dist(loc, section['src']) for section in directions[check:]]
+    print("dist list =", dist_list)
+    nearest_check = check + np.argmin(dist_list)
+    print("nearest_check =", nearest_check)
+    nearest_dist = dist_list[nearest_check - check]
+    print("nearest_dist =", nearest_dist)
+
+    global distance
+
+    if nearest_dist <= distance:  # user near next checkpoint
+        print("user is near")
+        check = nearest_check
 
         info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
         Estàs a % s\n \
@@ -190,19 +176,21 @@ def where(update, context):
             str(directions[check]['next_name'])
         )
 
-        context.user_data['checkpoint'] += 1
+        context.user_data['checkpoint'] = nearest_check
 
         send_message(update, context)
 
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=info)
+    else:
+        print("user is far")
 
 
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
-    nick = str(update.effective_chat.username)
-    print("canceled by", nick)
+    user = update.effective_chat.first_name
+    print("canceled by", user)
 
     # Reset initial conditions:
     del context.user_data['directions']
@@ -222,19 +210,19 @@ def send_message(update, context):
 def send_photo(update, context, directions):
     """ Generates, saves, sends, and deletes an image of journey """
 
-    global bcn_map
-    nick = str(update.effective_chat.username)
+    global map
+    user_id = str(update.message.from_user.id)
 
     location = context.user_data['location']
     destination = context.user_data['destination']
 
-    guide.plot_directions(bcn_map, location, destination, directions, nick)
+    guide.plot_directions(map, location, destination, directions, user_id)
 
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
-        photo=open(str(nick) + '.png', 'rb'))
+        photo=open(str(user_id) + '.png', 'rb'))
 
-    os.remove(nick + '.png')
+    os.remove(user_id + '.png')
 
 
 def send_text(update, context):
@@ -252,8 +240,17 @@ def next(update, context):
     context.user_data['test'] = True  # bool to know if we are testing
     where(update, context)
 
+def next4(update, context):
+    print("in next4")
+    """ updates location 4 checkpoints forward """
+    check = context.user_data['checkpoint']
+    src = context.user_data['directions'][check+4]['src']
+    next = (src[0] - 0.0001, src[1] - 0.0001)
+    context.user_data['location'] = next
 
-TOKEN = open('token.txt').read().strip()
+    context.user_data['test'] = True  # bool to know if we are testing
+    where(update, context)
+
 
 COMMANDS = {
     'start': "inicia la conversa amb mi.",
@@ -266,8 +263,7 @@ COMMANDS = {
     'zoom': "Envia una foto ampliada amb els 3 pròxims checkpoints."
 }
 
-updater = Updater(token=TOKEN, use_context=True)
-dispatcher = updater.dispatcher
+
 
 # indica que quan el bot rebi la comanda /start s'executi la funció start
 dispatcher.add_handler(CommandHandler('start', start))
@@ -275,9 +271,8 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('author', author))
 dispatcher.add_handler(CommandHandler('go', go))
 dispatcher.add_handler(CommandHandler('cancel', cancel))
-dispatcher.add_handler(CommandHandler('language', language))
-dispatcher.add_handler(CommandHandler('conveyance', conveyance))
 dispatcher.add_handler(CommandHandler('next', next))
+dispatcher.add_handler(CommandHandler('next4', next4))
 dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 
