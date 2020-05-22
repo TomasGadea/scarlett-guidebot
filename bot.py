@@ -33,6 +33,7 @@ def init_map(city):
 
 init_map(city)
 
+# guide.print_graph(map)
 
 def start(update, context):
     """ inicia la conversa. """
@@ -77,6 +78,7 @@ def go(update, context):
 
     try:
         location = context.user_data['location']  # KeyError if not shared
+        context.user_data['location'] = location
 
         message = ''  # ' '.join(str(context.args))
         for i in range(len(context.args)):
@@ -86,11 +88,12 @@ def go(update, context):
         directions = guide.get_directions(map, location, destination)  # dict
 
         # Save vars in user dictionary
+        context.user_data['address'] = message
         context.user_data['destination'] = destination
         context.user_data['directions'] = directions
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-        send_message(update, context)  # És el que hi havia aqui
+        send_photo(update, context, directions)
 
         # Send journey starting message:
         info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint #1:    " + str(
@@ -137,8 +140,6 @@ def zoom(update, context):
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
 
-    print("in where")
-
     if 'location' not in context.user_data or not context.user_data['test']:
         message = update.edited_message if update.edited_message else update.message
         loc = context.user_data['location'] = (
@@ -150,41 +151,30 @@ def where(update, context):
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
-    print("calculating dist list")
     dist_list = [guide.dist(loc, section['src']) for section in directions[check:]]
-    print("dist list =", dist_list)
     nearest_check = check + np.argmin(dist_list)
-    print("nearest_check =", nearest_check)
     nearest_dist = dist_list[nearest_check - check]
-    print("nearest_dist =", nearest_dist)
 
     global distance
 
     if nearest_dist <= distance:  # user near next checkpoint
-        print("user is near")
         check = nearest_check
 
-        info = 'Molt bé: has arribat al Checkpoint  # %d!\n \
-        Estàs a % s\n \
-        Ves al Chekpoint  # %d: %s(%s) longitud:\n \
-        angle: \n' \
-        % (
-            check,
-            str(directions[check]['src']),
-            check+1,
-            str(directions[check]['mid']),
-            str(directions[check]['next_name'])
-        )
+        if check == len(directions)-1: # last node
+            address = context.user_data['address']
+            info = "Felicitats bro, has arribat a %s" %(str(address))
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=info)
 
-        context.user_data['checkpoint'] = nearest_check
+            cancel(update, context)
 
-        send_message(update, context)
+        else:
+            context.user_data['checkpoint'] = nearest_check
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=info)
-    else:
-        print("user is far")
+            send_photo(update, context, directions[nearest_check:])
+            send_mid_text(update, context, nearest_check)
+
 
 
 def cancel(update, context):
@@ -198,25 +188,14 @@ def cancel(update, context):
     context.user_data['checkpoint'] = 0
 
 
-def send_message(update, context):
-    """ ... """
-    check = context.user_data['checkpoint']
-    directions = context.user_data['directions']
-
-    send_photo(update, context, directions[check:])
-    #send_text(update, context)
-
-
-def send_photo(update, context, directions):
+def send_photo(update, context, chopped_dir):
     """ Generates, saves, sends, and deletes an image of journey """
-
     global map
-    user_id = str(update.message.from_user.id)
-
     location = context.user_data['location']
     destination = context.user_data['destination']
+    user_id = str(update.message.from_user.id)
 
-    guide.plot_directions(map, location, destination, directions, user_id)
+    guide.plot_directions(map, location, destination, chopped_dir, user_id)
 
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
@@ -225,9 +204,69 @@ def send_photo(update, context, directions):
     os.remove(user_id + '.png')
 
 
-def send_text(update, context):
-    """ ... """
-    pass
+def send_mid_text(update, context, check):
+    """ Sends text from middle checkpoints. """
+    directions = context.user_data['directions']
+    info = 'Molt bé: has arribat al Checkpoint  # %d!\n Estàs a % s\n Ves al Chekpoint  # %d: %s' \
+    % (
+    check,
+    str(directions[check]['src']),
+    check+1,
+    str(directions[check]['mid'])
+    )
+
+    if directions[check]['next_name'] is not None:
+        info += directions[check]['next_name'] + '\n'
+    info = append_angle(directions, check, info)
+    #info = append_meters(directions, cehck, info)
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=info)
+
+def append_angle(directions, check, info):
+    n = len(directions)
+    if check <= 1 or check >= n:
+        a = 0   # Assume first and last angle is 0
+    else:
+        a = directions[check]['angle']
+
+    if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
+        info += "turn half right \n"
+    elif 67.5 <= a <= 112.5 or -292.5 <= a <= -247.5:
+        info += "turn right \n"
+    elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
+        info += "turn strong right \n"
+
+
+    elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
+        info += "turn half left \n"
+    elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
+        info += "turn left \n"
+    elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
+        info += "turn strong left \n"
+
+
+    # elif -157.5 <= a <= -112.5:
+    #     info += "turn strong left \n"
+    # elif -112.5 <= a <= -67.5:
+    #     info += "turn left \n"
+    # elif -67.5 <= a <= -22.5:
+    #     info += "turn half left \n"
+    #
+    #
+    # elif -337.5 <= a <= -292.5:
+    #     info += "turn half right \n"
+    # elif -292.5 <= a <= -247.5:
+    #     info += "turn right \n"
+    # elif -202.5 <= a <= -157.5:
+    #     info += "turn strong right \n"
+
+
+    else:
+        info += "go straight through \n"
+
+    return info
 
 
 def next(update, context):
@@ -238,10 +277,11 @@ def next(update, context):
     context.user_data['location'] = next
 
     context.user_data['test'] = True  # bool to know if we are testing
+
     where(update, context)
 
+
 def next4(update, context):
-    print("in next4")
     """ updates location 4 checkpoints forward """
     check = context.user_data['checkpoint']
     src = context.user_data['directions'][check+4]['src']

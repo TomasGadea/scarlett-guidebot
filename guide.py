@@ -164,9 +164,10 @@ def get_name_of(street):
 def angle(edges, i, n):
     """ Returns the angle of edges i and i + 1 in edges if we can
         calculate it. """
-    if i >= n-1 or not 'bearing' in edges[i] or not 'bearing' in edges[i + 1]:
+    if i >= n or i <= 1 or not 'bearing' in edges[i-1] or not 'bearing' in edges[i]:
         return None
-    return edges[i + 1]['bearing'] - edges[i]['bearing']
+        
+    return edges[i]['bearing'] - edges[i-1]['bearing']
 
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
