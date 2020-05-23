@@ -127,7 +127,7 @@ def dstErr(update, context):
     dstErr = '''
 No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
 
-Prova l'estructura _Lloc, País_
+Prova l'estructura */go* _Lloc, País_
 '''
     send_markdown(update, context, dstErr)
 
@@ -147,10 +147,10 @@ def zoom(update, context):
 
     except Exception:
         print(traceback.format_exc())
-        zoomErr(context)
+        zoomErr(update, context)
 
 
-def zoomErr(context):
+def zoomErr(update, context):
     zoomErr = '''
 No has iniciat cap trajecte!
 
@@ -206,10 +206,15 @@ def next_checkpoint(update, context, nearest_check, directions):
         send_mid_text(update, context, nc)
 
 def end_route(update, context):
+    user = update.effective_chat.first_name
     address = context.user_data['address']
     info = '''
-Felicitats bro, has arribat a %s
-''' %(str(address))
+Felicitats %s! 🥳
+Has arribat a %s.
+Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
+
+(Pots continuar desplaçan-te amb la comanda */go*)
+''' %(user, str(address))
 
     send_markdown(update, context, info)
     cancel(update, context)
