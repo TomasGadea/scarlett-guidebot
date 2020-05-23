@@ -5,6 +5,7 @@ import os
 import traceback
 import numpy as np
 
+
 # Constants:
 city = "Barcelona"
 distance = 20  # max distance from user to checkpoint to consider him near it.
@@ -204,7 +205,12 @@ def send_photo(update, context, chopped_dir):
     os.remove(user_id + '.png')
 
 
+def send_first_text():
+    pass
+
+
 def send_mid_text(update, context, check):
+    print(1)
     """ Sends text from middle checkpoints. """
     directions = context.user_data['directions']
     info = 'Molt bé: has arribat al Checkpoint  # %d!\n Estàs a % s\n Ves al Chekpoint  # %d: %s' \
@@ -214,8 +220,10 @@ def send_mid_text(update, context, check):
     check+1,
     str(directions[check]['mid']) + '\n'
     )
-    info = append_angle(directions, check, info)
-    # info = append_meters(directions, cehck, info)
+
+    info = add_angle(directions, check, info)
+    info = add_meters(directions, check, info)
+
 
     if directions[check]['next_name'] is not None:
         info += ' per ' + directions[check]['next_name'] + '\n'
@@ -225,7 +233,7 @@ def send_mid_text(update, context, check):
         text=info)
 
 
-def append_angle(directions, check, info):
+def add_angle(directions, check, info):
 
     n = len(directions)
     if check <= 1 or check >= n:
@@ -254,15 +262,19 @@ def append_angle(directions, check, info):
     return info
 
 
-# def append_meters(directions, cehck, info):
-#     try:
-#         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
-#             info += 'i avança ' + directions[check]['length'] + ' metres'
-#
-#         return info
-#
-#     except Exception as e:
-#         print(traceback.format_exc())
+def add_meters(directions, check, info_angles):
+
+    try:
+        if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
+            info_angles += 'i avança ' + str(round(directions[check]['length'])) + ' metres'
+        else:
+            print("no lenght")
+
+        return info_angles
+
+    except Exception:
+        print(traceback.format_exc())
+
 
 def next(update, context):
     """Debugging command"""
