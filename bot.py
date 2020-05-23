@@ -95,13 +95,7 @@ def go(update, context):
         context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
         send_photo(update, context, directions)
-
-        # Send journey starting message:
-        info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint #1:    " + str(
-            directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=info)
+        send_first_text(update, context, directions)
 
     except KeyError:  # any location has been shared
         print('KeyError')
@@ -205,8 +199,13 @@ def send_photo(update, context, chopped_dir):
     os.remove(user_id + '.png')
 
 
-def send_first_text():
-    pass
+def send_first_text(update, context, directions):
+    info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint #1:    " + str(
+        directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=info)
 
 
 def send_mid_text(update, context, check):
