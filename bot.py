@@ -125,24 +125,21 @@ def cancel(update, context):
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
 
-def next(update, context):
-    """Debugging command"""
-    check = context.user_data['checkpoint']
-    mid = context.user_data['directions'][check]['mid']
-    next = (mid[0] - 0.0001, mid[1] - 0.0001)
-    context.user_data['location'] = next
+def jump(update, context):
+    n = int(context.args[0])
+    c = context.user_data['checkpoint']
+    d = context.user_data['directions']
 
-    context.user_data['test'] = True  # bool to know if we are testing
+    if len(d)-1 < c+n:
+        c = len(d)-1
+        n = 0
+    elif c+n < 0:
+        c = 0
+        n = 0
 
-    where(update, context)
-
-def next4(update, context):
-    """ updates location 4 checkpoints forward """
-    check = context.user_data['checkpoint']
-    src = context.user_data['directions'][check+4]['src']
+    src = context.user_data['directions'][c+n]['src']
     next = (src[0] - 0.0001, src[1] - 0.0001)
     context.user_data['location'] = next
-
     context.user_data['test'] = True  # bool to know if we are testing
     where(update, context)
 
@@ -195,14 +192,9 @@ def send_photo(update, context, chopped_dir):
 def send_first_text(update, context, directions):
 
     info = '''
-Estàs a %s
 Comença al *Checkpoint #1*:
     %s
-    %s
-''' % (
-    str(directions[0]['src']),
-    str(directions[0]['mid']),
-    directions[0]['next_name'])
+''' % (directions[0]['next_name'])
 
     send_markdown(update, context, info)
 
@@ -211,24 +203,16 @@ def send_mid_text(update, context, check):
 
     directions = context.user_data['directions']
     info = '''
-Molt bé: has arribat al *Checkpoint # %d*!
+Molt bé: has arribat al *Checkpoint %d*!
 
-Estàs a % s
-Ves al *Chekpoint # %d*:
-    %s
-''' % (
-    check,
-    str(directions[check]['src']),
-    check+1,
-    str(directions[check]['mid']) + '''\n'''
-    )
+''' % (check)
 
-    info = add_angle(directions, check, info)
-    info = add_meters(directions, check, info)
+    info += angle(directions, check)
+    info += meters(directions, check)
 
 
     if directions[check]['next_name'] is not None:
-        info += ''' per ''' + directions[check]['next_name'] + '''\n'''
+        info += ''' per ''' + directions[check]['next_name'] + ''' per arribar al *Checkpoint %d*''' % (check+1)
 
     send_markdown(update, context, info)
 
@@ -249,18 +233,6 @@ def store(context, message, destination, directions):
     context.user_data['directions'] = directions
     context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
-def next_checkpoint(update, context, nearest_check, directions):
-    nc = nearest_check
-    last = len(directions) - 1
-
-    if nc == last: # last node
-        end_route(update, context)
-
-    else:
-        context.user_data['checkpoint'] = nc
-        send_photo(update, context, directions[nc:])
-        send_mid_text(update, context, nc)
-
 def end_route(update, context):
     user = update.effective_chat.first_name
     address = context.user_data['address']
@@ -275,7 +247,7 @@ Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
     send_markdown(update, context, info)
     cancel(update, context)
 
-def add_angle(directions, check, info):
+def angle(directions, check):
 
     n = len(directions)
     if check <= 1 or check >= n:
@@ -284,34 +256,34 @@ def add_angle(directions, check, info):
         a = directions[check]['angle']
 
     if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
-        info += '''Gira lleugerament a la dreta '''
+        angle = '''Gira lleugerament a la dreta '''
     elif 67.5 <= a <= 112.5 or -292.5 <= a <= -247.5:
-        info += '''Gira a la dreta '''
+        angle = '''Gira a la dreta '''
     elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
-        info += '''Gira pronunciadament a la dreta '''
+        angle = '''Gira pronunciadament a la dreta '''
 
 
     elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
-        info += '''Gira lleugerament a l'esquerra '''
+        angle = '''Gira lleugerament a l'esquerra '''
     elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
-        info += '''Gira a l'esquerra '''
+        angle = '''Gira a l'esquerra '''
     elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
-        info += '''Gira pronunciadament a l'esquerra '''
+        angle = '''Gira pronunciadament a l'esquerra '''
 
     else:
-        info += '''Segueix recte '''
+        angle = '''Segueix recte '''
 
-    return info
+    return angle
 
-def add_meters(directions, check, info_angles):
+def meters(directions, check):
 
     try:
         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
-            info_angles += '''i avança ''' + str(round(directions[check]['length'])) + ''' metres'''
+            meters = '''i avança ''' + str(round(directions[check]['length'])) + ''' metres'''
         else:
             print("no lenght")
 
-        return info_angles
+        return meters
 
     except Exception:
         print(traceback.format_exc())
@@ -333,7 +305,6 @@ def init_map(city):
 
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
-
     if 'location' not in context.user_data or not context.user_data['test']:
         regular_where(update, context)
 
@@ -341,6 +312,7 @@ def where(update, context):
         testing_where(update, context)
 
 def regular_where(update, context):
+
     message = update.edited_message if update.edited_message else update.message
     loc = context.user_data['location'] = (
         message.location.latitude, message.location.longitude)
@@ -356,15 +328,25 @@ def common_where(update, context, loc):
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
-    dist_list = [guide.dist(loc, section['src']) for section in directions[check:]]
-    nearest_check = check + np.argmin(dist_list)
-    nearest_dist = dist_list[nearest_check - check]
+    dist_list = [guide.dist(loc, section['src']) for section in directions]
+    nearest_check = np.argmin(dist_list)
+    nearest_dist = dist_list[nearest_check]
 
     global distance
 
     if nearest_dist <= distance:  # user near next checkpoint
         next_checkpoint(update, context, nearest_check, directions)
 
+def next_checkpoint(update, context, nearest_check, directions):
+    nc = nearest_check
+    last = len(directions) - 1
+    if nc == last: # last node
+        end_route(update, context)
+
+    else:
+        context.user_data['checkpoint'] = nc
+        send_photo(update, context, directions[nc:])
+        send_mid_text(update, context, nc)
 #-------------------------------------------------------------------------------
 
 
@@ -374,8 +356,6 @@ def common_where(update, context, loc):
 COMMANDS = {
     'start': "inicia la conversa amb mi.",
     'help': "et torno a oferir aquesta ajuda sobre les meves comandes disponibles els cops que necessitis.",
-    'language llengua': "canvia la l'idioma amb el que t'atenc al que m'hagis especificat.",
-    'conveyance trasport': "canvia les rutes que et proporciono per les adeqüades del transport que m'hagis especificat.",
     'author': "si ets curiós et puc dir qui m'ha creat.",
     'go destí': "et començo a guiar per a arrivar de la teva posició actual fins al punt de destí que m'hagis especificat.🧭\nT'anire enviant indicacions al teu dispositiu de les direccions que has de prendre.📲",
     'cancel': "cancel·la el sistema de guia actiu.",
@@ -388,8 +368,7 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('author', author))
 dispatcher.add_handler(CommandHandler('go', go))
 dispatcher.add_handler(CommandHandler('cancel', cancel))
-dispatcher.add_handler(CommandHandler('next', next))
-dispatcher.add_handler(CommandHandler('next4', next4))
+dispatcher.add_handler(CommandHandler('jump', jump))
 dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 
