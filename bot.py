@@ -38,22 +38,34 @@ init_map(city)
 
 def start(update, context):
     """ inicia la conversa. """
+
     user = update.effective_chat.first_name
-    salute = "Hola %s! Sóc Scarlett, el teu bot guia.\nSi no coneixes el meu funcioanemnt et recomano la comanda /help.\nSi ja em coneixes, a on anem avui?" % (
-        user)
-    context.bot.send_message(chat_id=update.effective_chat.id, text=salute)
+    salute = '''
+Hola %s! Sóc _Scarlett_, el teu bot guia.
+Si no coneixes el meu funcioanemnt et recomano la comanda */help*.
+Si ja em coneixes, a on anem avui?
+''' % (user)
+
+    send_markdown(update, context, salute)
 
 
 def help(update, context):
     """ ofereix ajuda sobre les comandes disponibles. """
+
     user = update.effective_chat.first_name
-    help_message = "D'acord %s, t'explico el meu funcionament.\nPrimer de tot necessito que comparteixis la teva ubicació en directe amb mi per a poder funcionar correctament.🗺\nUn cop fet això t'explico tot el que em pots demanar que faci:\n" % (
-        user)
+    help_message = '''
+D'acord %s, t'explico el meu funcionament:
+
+Primer de tot necessito que comparteixis la teva *ubicació en directe* amb mi per a poder funcionar correctament.🗺
+
+Un cop fet això t'explico tot el que em pots demanar que faci:
+
+''' % (user)
+
     for key in COMMANDS.keys():  # PROVAR JOINT
-        help_message += '\n 🚩 /' + key + ' ➡️ ' + COMMANDS[key]
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=help_message)
+        help_message += ''' 🚩 */''' + key + '''* ➡️ ''' + COMMANDS[key] + '''\n'''
+
+    send_markdown(update, context, help_message)
 
 
 def author(update, context):
@@ -66,10 +78,7 @@ Els meus creadors són:
     mail: paumatasalbi@gmail.com
 '''
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=info,
-        parse_mode=telegram.ParseMode.MARKDOWN)
+    send_markdown(update, context, info)
 
 
 def go(update, context):
@@ -79,37 +88,48 @@ def go(update, context):
 
     try:
         location = context.user_data['location']  # KeyError if not shared
-        context.user_data['location'] = location
 
-        message = ''  # ' '.join(str(context.args))
-        for i in range(len(context.args)):
-            message += str(context.args[i] + ' ')
+        message = str(' '.join(context.args))
 
         destination = guide.address_coord(message)  # (lat, long)
         directions = guide.get_directions(map, location, destination)  # dict
 
         # Save vars in user dictionary
-        context.user_data['address'] = message
-        context.user_data['destination'] = destination
-        context.user_data['directions'] = directions
-        context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
+        store(context, message, destination, directions)
+
 
         send_photo(update, context, directions)
         send_first_text(update, context, directions)
 
     except KeyError:  # any location has been shared
-        print('KeyError')
-
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Necessito saber la teva ubicació en directe, potser t'hauries de repassar les meves opcions amb /help...")
-
-    except Exception as e:
         print(traceback.format_exc())
+        locErr(update, context)
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="No em dones prou informacio! No sé on vols anar🤷🏼‍♂️\nProva l'estructura Lloc, País")
+    except Exception:
+        print(traceback.format_exc())
+        dstErr(update, context)
+
+def store(context, message, destination, directions):
+    context.user_data['address'] = message
+    context.user_data['destination'] = destination
+    context.user_data['directions'] = directions
+    context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
+
+def locErr(update, context):
+    locErr = '''
+Necessito saber la teva *ubicació en directe*!
+
+Potser t'hauries de repassar les meves opcions amb */help*...
+'''
+    send_markdown(update, context, locErr)
+
+def dstErr(update, context):
+    dstErr = '''
+No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
+
+Prova l'estructura _Lloc, País_
+'''
+    send_markdown(update, context, dstErr)
 
 
 def zoom(update, context):
@@ -127,22 +147,39 @@ def zoom(update, context):
 
     except Exception:
         print(traceback.format_exc())
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="No has iniciat cap trajecte! Utilitza la comanda [/go 'destinació'] per començar la ruta.")
+        zoomErr(context)
+
+
+def zoomErr(context):
+    zoomErr = '''
+No has iniciat cap trajecte!
+
+Utilitza la comanda */go* _destinació_ per començar la ruta.
+'''
+    send_markdown(update, context, zoomErr)
 
 
 def where(update, context):
     """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
 
     if 'location' not in context.user_data or not context.user_data['test']:
-        message = update.edited_message if update.edited_message else update.message
-        loc = context.user_data['location'] = (
-            message.location.latitude, message.location.longitude)
+        regular_where(update, context)
 
     else:
-        loc = context.user_data['location']
+        testing_where(update, context)
 
+def regular_where(update, context):
+    message = update.edited_message if update.edited_message else update.message
+    loc = context.user_data['location'] = (
+        message.location.latitude, message.location.longitude)
+
+    common_where(update, context, loc)
+
+def testing_where(update, context):
+    loc = context.user_data['location']
+    common_where(update, context, loc)
+
+def common_where(update, context, loc):
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
@@ -153,22 +190,32 @@ def where(update, context):
     global distance
 
     if nearest_dist <= distance:  # user near next checkpoint
-        check = nearest_check
+        next_checkpoint(update, context, nearest_check, directions)
 
-        if check == len(directions)-1: # last node
-            address = context.user_data['address']
-            info = "Felicitats bro, has arribat a %s" %(str(address))
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=info)
 
-            cancel(update, context)
+def next_checkpoint(update, context, nearest_check, directions):
+    nc = nearest_check
+    last = len(directions) - 1
 
-        else:
-            context.user_data['checkpoint'] = nearest_check
+    if nc == last: # last node
+        end_route(update, context)
 
-            send_photo(update, context, directions[nearest_check:])
-            send_mid_text(update, context, nearest_check)
+    else:
+        context.user_data['checkpoint'] = nc
+        send_photo(update, context, directions[nc:])
+        send_mid_text(update, context, nc)
+
+def end_route(update, context):
+    address = context.user_data['address']
+    info = '''
+Felicitats bro, has arribat a %s
+''' %(str(address))
+
+    send_markdown(update, context, info)
+    cancel(update, context)
+
+
+
 
 
 
@@ -200,24 +247,35 @@ def send_photo(update, context, chopped_dir):
 
 
 def send_first_text(update, context, directions):
-    info = "Estàs a " + str(directions[0]['src']) + "\nComença al Checkpoint #1:    " + str(
-        directions[0]['mid']) + '\n(' + directions[0]['next_name'] + ')'
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=info)
+    info = '''
+Estàs a %s
+Comença al *Checkpoint #1*:
+    %s
+    %s
+''' % (
+    str(directions[0]['src']),
+    str(directions[0]['mid']),
+    directions[0]['next_name'])
+
+    send_markdown(update, context, info)
 
 
 def send_mid_text(update, context, check):
-    print(1)
     """ Sends text from middle checkpoints. """
+
     directions = context.user_data['directions']
-    info = 'Molt bé: has arribat al Checkpoint  # %d!\n Estàs a % s\n Ves al Chekpoint  # %d: %s' \
-    % (
+    info = '''
+Molt bé: has arribat al *Checkpoint # %d*!
+
+Estàs a % s
+Ves al *Chekpoint # %d*:
+    %s
+''' % (
     check,
     str(directions[check]['src']),
     check+1,
-    str(directions[check]['mid']) + '\n'
+    str(directions[check]['mid']) + '''\n'''
     )
 
     info = add_angle(directions, check, info)
@@ -225,11 +283,9 @@ def send_mid_text(update, context, check):
 
 
     if directions[check]['next_name'] is not None:
-        info += ' per ' + directions[check]['next_name'] + '\n'
+        info += ''' per ''' + directions[check]['next_name'] + '''\n'''
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=info)
+    send_markdown(update, context, info)
 
 
 def add_angle(directions, check, info):
@@ -241,22 +297,22 @@ def add_angle(directions, check, info):
         a = directions[check]['angle']
 
     if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
-        info += "Gira lleugerament a la dreta "
+        info += '''Gira lleugerament a la dreta '''
     elif 67.5 <= a <= 112.5 or -292.5 <= a <= -247.5:
-        info += "Gira a la dreta "
+        info += '''Gira a la dreta '''
     elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
-        info += "Gira pronunciadament a la dreta "
+        info += '''Gira pronunciadament a la dreta '''
 
 
     elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
-        info += "Gira lleugerament a l'esquerra "
+        info += '''Gira lleugerament a l'esquerra '''
     elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
-        info += "Gira a l'esquerra "
+        info += '''Gira a l'esquerra '''
     elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
-        info += "Gira pronunciadament a l'esquerra "
+        info += '''Gira pronunciadament a l'esquerra '''
 
     else:
-        info += "Segueix recte "
+        info += '''Segueix recte '''
 
     return info
 
@@ -265,7 +321,7 @@ def add_meters(directions, check, info_angles):
 
     try:
         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
-            info_angles += 'i avança ' + str(round(directions[check]['length'])) + ' metres'
+            info_angles += '''i avança ''' + str(round(directions[check]['length'])) + ''' metres'''
         else:
             print("no lenght")
 
@@ -296,6 +352,14 @@ def next4(update, context):
 
     context.user_data['test'] = True  # bool to know if we are testing
     where(update, context)
+
+
+def send_markdown(update, context, info):
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=info,
+        parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 COMMANDS = {
