@@ -136,7 +136,6 @@ def next(update, context):
 
     where(update, context)
 
-
 def next4(update, context):
     """ updates location 4 checkpoints forward """
     check = context.user_data['checkpoint']
