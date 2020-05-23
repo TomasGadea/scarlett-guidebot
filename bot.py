@@ -1,3 +1,5 @@
+############################## SCARLETT-GUIDEBOT ###############################
+
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import guide
@@ -5,11 +7,11 @@ import os
 import traceback
 import numpy as np
 
+#----------------------------- Initialization ----------------------------------
 
 # Constants:
 city = "Barcelona"
 distance = 20  # max distance from user to checkpoint to consider him near it.
-#-------------------------------------------------------------------------------
 
 # Global variables:
 map = None   # variable to store the map/graph of the city
@@ -17,27 +19,17 @@ map = None   # variable to store the map/graph of the city
 TOKEN = open('token.txt').read().strip()
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
+
+updater.start_polling()
+
 #-------------------------------------------------------------------------------
 
 
-def init_map(city):
-    """ Descarrega i guarda el mapa de city, si ja existeix simplement el carrega. """
-    global map
-    try:
-        map = guide.load_graph(city + "_map")
-    except FileNotFoundError:
-        print("downloading...")
-        map = guide.download_graph(city)
-        guide.save_graph(map, city + "_map")
-        print("downloaded!")
-
-
-init_map(city)
-
-# guide.print_graph(map)
+#------------------------------- Commands --------------------------------------
 
 def start(update, context):
     """ inicia la conversa. """
+    init_map(city)
 
     user = update.effective_chat.first_name
     salute = '''
@@ -47,7 +39,6 @@ Si ja em coneixes, a on anem avui?
 ''' % (user)
 
     send_markdown(update, context, salute)
-
 
 def help(update, context):
     """ ofereix ajuda sobre les comandes disponibles. """
@@ -67,7 +58,6 @@ Un cop fet això t'explico tot el que em pots demanar que faci:
 
     send_markdown(update, context, help_message)
 
-
 def author(update, context):
     """ Mostra el nom dels autors del projecte. """
     info = '''
@@ -79,7 +69,6 @@ Els meus creadors són:
 '''
 
     send_markdown(update, context, info)
-
 
 def go(update, context):
     """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
@@ -109,29 +98,6 @@ def go(update, context):
         print(traceback.format_exc())
         dstErr(update, context)
 
-def store(context, message, destination, directions):
-    context.user_data['address'] = message
-    context.user_data['destination'] = destination
-    context.user_data['directions'] = directions
-    context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
-
-def locErr(update, context):
-    locErr = '''
-Necessito saber la teva *ubicació en directe*!
-
-Potser t'hauries de repassar les meves opcions amb */help*...
-'''
-    send_markdown(update, context, locErr)
-
-def dstErr(update, context):
-    dstErr = '''
-No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
-
-Prova l'estructura */go* _Lloc, País_
-'''
-    send_markdown(update, context, dstErr)
-
-
 def zoom(update, context):
     try:
         check = context.user_data['checkpoint']
@@ -149,81 +115,6 @@ def zoom(update, context):
         print(traceback.format_exc())
         zoomErr(update, context)
 
-
-def zoomErr(update, context):
-    zoomErr = '''
-No has iniciat cap trajecte!
-
-Utilitza la comanda */go* _destinació_ per començar la ruta.
-'''
-    send_markdown(update, context, zoomErr)
-
-
-def where(update, context):
-    """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
-
-    if 'location' not in context.user_data or not context.user_data['test']:
-        regular_where(update, context)
-
-    else:
-        testing_where(update, context)
-
-def regular_where(update, context):
-    message = update.edited_message if update.edited_message else update.message
-    loc = context.user_data['location'] = (
-        message.location.latitude, message.location.longitude)
-
-    common_where(update, context, loc)
-
-def testing_where(update, context):
-    loc = context.user_data['location']
-    common_where(update, context, loc)
-
-def common_where(update, context, loc):
-    check = context.user_data['checkpoint']
-    directions = context.user_data['directions']
-
-    dist_list = [guide.dist(loc, section['src']) for section in directions[check:]]
-    nearest_check = check + np.argmin(dist_list)
-    nearest_dist = dist_list[nearest_check - check]
-
-    global distance
-
-    if nearest_dist <= distance:  # user near next checkpoint
-        next_checkpoint(update, context, nearest_check, directions)
-
-
-def next_checkpoint(update, context, nearest_check, directions):
-    nc = nearest_check
-    last = len(directions) - 1
-
-    if nc == last: # last node
-        end_route(update, context)
-
-    else:
-        context.user_data['checkpoint'] = nc
-        send_photo(update, context, directions[nc:])
-        send_mid_text(update, context, nc)
-
-def end_route(update, context):
-    user = update.effective_chat.first_name
-    address = context.user_data['address']
-    info = '''
-Felicitats %s! 🥳
-Has arribat a %s.
-Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
-
-(Pots continuar desplaçan-te amb la comanda */go*)
-''' %(user, str(address))
-
-    send_markdown(update, context, info)
-    cancel(update, context)
-
-
-
-
-
-
 def cancel(update, context):
     """ Finalitza la ruta actual de l'usuari. """
     user = update.effective_chat.first_name
@@ -234,7 +125,59 @@ def cancel(update, context):
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
 
+def next(update, context):
+    """Debugging command"""
+    check = context.user_data['checkpoint']
+    mid = context.user_data['directions'][check]['mid']
+    next = (mid[0] - 0.0001, mid[1] - 0.0001)
+    context.user_data['location'] = next
 
+    context.user_data['test'] = True  # bool to know if we are testing
+
+    where(update, context)
+
+
+def next4(update, context):
+    """ updates location 4 checkpoints forward """
+    check = context.user_data['checkpoint']
+    src = context.user_data['directions'][check+4]['src']
+    next = (src[0] - 0.0001, src[1] - 0.0001)
+    context.user_data['location'] = next
+
+    context.user_data['test'] = True  # bool to know if we are testing
+    where(update, context)
+
+#-------------------------------------------------------------------------------
+
+#--------------------------------- Errors --------------------------------------
+
+def locErr(update, context):
+    locErr = '''
+Necessito saber la teva *ubicació en directe*!
+
+Potser t'hauries de repassar les meves opcions amb */help*...
+'''
+    send_markdown(update, context, locErr)
+
+def dstErr(update, context):
+    dstErr = '''
+No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
+
+Prova l'estructura */go* _Lloc, País_
+'''
+    send_markdown(update, context, dstErr)
+
+def zoomErr(update, context):
+    zoomErr = '''
+No has iniciat cap trajecte!
+
+Utilitza la comanda */go* _destinació_ per començar la ruta.
+'''
+    send_markdown(update, context, zoomErr)
+
+#-------------------------------------------------------------------------------
+
+#------------------------------- Messages --------------------------------------
 def send_photo(update, context, chopped_dir):
     """ Generates, saves, sends, and deletes an image of journey """
     global map
@@ -250,7 +193,6 @@ def send_photo(update, context, chopped_dir):
 
     os.remove(user_id + '.png')
 
-
 def send_first_text(update, context, directions):
 
     info = '''
@@ -264,7 +206,6 @@ Comença al *Checkpoint #1*:
     directions[0]['next_name'])
 
     send_markdown(update, context, info)
-
 
 def send_mid_text(update, context, check):
     """ Sends text from middle checkpoints. """
@@ -292,6 +233,48 @@ Ves al *Chekpoint # %d*:
 
     send_markdown(update, context, info)
 
+def send_markdown(update, context, info):
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=info,
+        parse_mode=telegram.ParseMode.MARKDOWN)
+
+#-------------------------------------------------------------------------------
+
+#----------------------------- Aux functions -----------------------------------
+
+def store(context, message, destination, directions):
+    context.user_data['address'] = message
+    context.user_data['destination'] = destination
+    context.user_data['directions'] = directions
+    context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
+
+def next_checkpoint(update, context, nearest_check, directions):
+    nc = nearest_check
+    last = len(directions) - 1
+
+    if nc == last: # last node
+        end_route(update, context)
+
+    else:
+        context.user_data['checkpoint'] = nc
+        send_photo(update, context, directions[nc:])
+        send_mid_text(update, context, nc)
+
+def end_route(update, context):
+    user = update.effective_chat.first_name
+    address = context.user_data['address']
+    info = '''
+Felicitats %s! 🥳
+Has arribat a %s.
+Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
+
+(Pots continuar desplaçan-te amb la comanda */go*)
+''' %(user, str(address))
+
+    send_markdown(update, context, info)
+    cancel(update, context)
 
 def add_angle(directions, check, info):
 
@@ -321,7 +304,6 @@ def add_angle(directions, check, info):
 
     return info
 
-
 def add_meters(directions, check, info_angles):
 
     try:
@@ -335,37 +317,60 @@ def add_meters(directions, check, info_angles):
     except Exception:
         print(traceback.format_exc())
 
+def init_map(city):
+    """ Descarrega i guarda el mapa de city, si ja existeix simplement el carrega. """
+    global map
+    try:
+        map = guide.load_graph(city + "_map")
+    except FileNotFoundError:
+        print("downloading...")
+        map = guide.download_graph(city)
+        guide.save_graph(map, city + "_map")
+        print("downloaded!")
 
-def next(update, context):
-    """Debugging command"""
+#-------------------------------------------------------------------------------
+
+#-------------------------- Location functions ---------------------------------
+
+def where(update, context):
+    """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
+
+    if 'location' not in context.user_data or not context.user_data['test']:
+        regular_where(update, context)
+
+    else:
+        testing_where(update, context)
+
+def regular_where(update, context):
+    message = update.edited_message if update.edited_message else update.message
+    loc = context.user_data['location'] = (
+        message.location.latitude, message.location.longitude)
+
+    common_where(update, context, loc)
+
+def testing_where(update, context):
+    loc = context.user_data['location']
+    common_where(update, context, loc)
+
+def common_where(update, context, loc):
+
     check = context.user_data['checkpoint']
-    mid = context.user_data['directions'][check]['mid']
-    next = (mid[0] - 0.0001, mid[1] - 0.0001)
-    context.user_data['location'] = next
+    directions = context.user_data['directions']
 
-    context.user_data['test'] = True  # bool to know if we are testing
+    dist_list = [guide.dist(loc, section['src']) for section in directions[check:]]
+    nearest_check = check + np.argmin(dist_list)
+    nearest_dist = dist_list[nearest_check - check]
 
-    where(update, context)
+    global distance
 
+    if nearest_dist <= distance:  # user near next checkpoint
+        next_checkpoint(update, context, nearest_check, directions)
 
-def next4(update, context):
-    """ updates location 4 checkpoints forward """
-    check = context.user_data['checkpoint']
-    src = context.user_data['directions'][check+4]['src']
-    next = (src[0] - 0.0001, src[1] - 0.0001)
-    context.user_data['location'] = next
-
-    context.user_data['test'] = True  # bool to know if we are testing
-    where(update, context)
+#-------------------------------------------------------------------------------
 
 
-def send_markdown(update, context, info):
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=info,
-        parse_mode=telegram.ParseMode.MARKDOWN)
-
+# Commands and handlers:
 
 COMMANDS = {
     'start': "inicia la conversa amb mi.",
@@ -379,8 +384,6 @@ COMMANDS = {
 }
 
 
-
-# indica que quan el bot rebi la comanda /start s'executi la funció start
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('author', author))
@@ -390,6 +393,3 @@ dispatcher.add_handler(CommandHandler('next', next))
 dispatcher.add_handler(CommandHandler('next4', next4))
 dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
-
-# engega el bot
-updater.start_polling()
