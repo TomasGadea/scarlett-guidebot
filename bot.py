@@ -241,7 +241,7 @@ Felicitats %s! 🥳
 Has arribat a %s.
 Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
 
-(Pots continuar desplaçan-te amb la comanda */go*)
+(Pots continuar desplaçant-te amb la comanda */go*)
 ''' %(user, str(address))
 
     send_markdown(update, context, info)
