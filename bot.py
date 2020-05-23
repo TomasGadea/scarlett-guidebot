@@ -392,3 +392,6 @@ dispatcher.add_handler(CommandHandler('next', next))
 dispatcher.add_handler(CommandHandler('next4', next4))
 dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
+
+
+################################################################################
