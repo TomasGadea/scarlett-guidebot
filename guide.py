@@ -128,7 +128,6 @@ def section(edges, coord_nodes, i, n):
         returns the section (dictionary) that starts in the node i of the list """
 
     section = {'angle': angle(edges, i, n),
-               # podriem fer directions[i] ja que directions ja és la llista de tuples?
                'src': coord_nodes[i],
                'mid': (coord_nodes[i + 1])}
 
@@ -166,7 +165,7 @@ def angle(edges, i, n):
         calculate it. """
     if i >= n or i <= 1 or not 'bearing' in edges[i-1] or not 'bearing' in edges[i]:
         return None
-        
+
     return edges[i]['bearing'] - edges[i-1]['bearing']
 
 
