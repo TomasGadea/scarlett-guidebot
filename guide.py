@@ -61,7 +61,7 @@ def get_directions(graph, source_location, destination_location):
     return _from_path_to_directions(graph, sp_nodes, source_location, destination_location)
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
-    """ Plots and saves the directions from source_location to destination_location in a file named filename.png """
+    """ Plots and saves the directions from source_location to destination_location in a file named filename.png. """
 
     m = StaticMap(width, height)
 
@@ -77,13 +77,13 @@ def plot_directions(graph, source_location, destination_location, directions, fi
     image.save(str(filename) + '.png')
 
 def dist(a, b):
-    """ Returns the geografical distance from a=(lat,long) to b=(lat,long)"""
+    """ Returns the geografical distance from a=(lat,long) to b=(lat,long). """
 
     return haversine(a, b, unit='m')
 
 def address_coord(address):
     # from_address
-    """ Returns (lat, long) of a point given by an address (str) """
+    """ Returns (lat, long) of a point given by an address (str). """
 
     return ox.geo_utils.geocode(address)
 
@@ -92,12 +92,12 @@ def address_coord(address):
 #---------------------------- Private Functions --------------------------------
 
 def _closest_node_to(graph, source_location):
-    """ Return the graph node nearest to some specified source_location: (lat, lng) """
+    """ Return the graph node nearest to some specified source_location: (lat, lng). """
 
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
 
 def _from_path_to_directions(graph, sp_nodes, source_location, destination_location):
-    """ Returns the transformation from a path (represented as a list of nodes) to directions in their correct format (dictionary) """
+    """ Returns the transformation from a path (represented as a list of nodes) to directions in their correct format (dictionary). """
 
     # we add the additional nodes and edges such that we can reach the user and
     # the destination, making easier to transform to sections with only one list
@@ -126,7 +126,7 @@ def _from_path_to_directions(graph, sp_nodes, source_location, destination_locat
     return directions  # is a list of dictionaries
 
 def _edges_fist_edge(graph, sp_nodes, source_location):
-    """ Returns the first edge of the list called edges in his correct form """
+    """ Returns the first edge of the list called edges in his correct form. """
 
     src = sp_nodes[0]
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
@@ -135,7 +135,7 @@ def _edges_fist_edge(graph, sp_nodes, source_location):
     return (source_location, src_coord, {'length': src_length})
 
 def _edges_last_edge(graph, sp_nodes, destination_location):
-    """ Returns the last edge of the list called edges in his correct form """
+    """ Returns the last edge of the list called edges in his correct form. """
 
     dst = sp_nodes[-1]
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
@@ -155,7 +155,7 @@ def _id_coord(graph, node):
 #--> Section functions:
 
 def _section(edges, coord_nodes, i, n):
-    """ From a list that represents a path of n nodes (coord_nodes) and its relative in edges (edges) returns the section (dictionary) that starts in the node i of the list """
+    """ From a list that represents a path of n nodes (coord_nodes) and its relative in edges (edges) returns the section (dictionary) that starts in the node i of the list. """
 
     section = {'angle': _get_section_angle(edges, i, n),
                'src': coord_nodes[i],
@@ -190,7 +190,7 @@ def _get_section_next_name(edges, i, n):
     return None
 
 def _get_street_name(edge):
-    """ Returns the name of the street represented by the edge edge if it exists """
+    """ Returns the name of the street represented by the edge edge if it exists. """
 
     if 'name' in edge:
         if isinstance(edge['name'], str):
@@ -200,7 +200,7 @@ def _get_street_name(edge):
     return None
 
 def _get_street_length(edge):
-    """ Returns the length of the street represented by the edge edge if it exists """
+    """ Returns the length of the street represented by the edge edge if it exists. """
 
     if 'length' in edge:
         return edge['length']
@@ -209,7 +209,7 @@ def _get_street_length(edge):
 #--> Plot directions sub-functions:
 
 def _marker_line(directions, i):
-    """ Returns one line and marker with diferent characteristics depending on the type of the section given """
+    """ Returns one line and marker with diferent characteristics depending on the type of the section given. """
 
     lat1 = directions[i]['src'][0]
     long1 = directions[i]['src'][1]
@@ -230,14 +230,14 @@ def _marker_line(directions, i):
     return marker, line
 
 def _get_marker_feature(i, n):
-    """ Returns the color and width of the marker depending on his position i """
+    """ Returns the color and width of the marker depending on his position i. """
 
     if i == 0 or i == n - 1:
         return 'blue', 20
     return 'red', 10
 
 def _get_line_feature(i, n):
-    """ Returns the color and width of the line or None, None (if it shouldn't be printed) depending on his position i """
+    """ Returns the color and width of the line or None, None (if it shouldn't be printed) depending on his position i. """
 
     if i == n - 1:
         return None, None

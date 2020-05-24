@@ -9,6 +9,8 @@ import numpy as np
 
 #----------------------------- Initialization ----------------------------------
 
+""" This bot works in Barcelona and her language is catalan. """
+
 # Constants:
 city = "Barcelona"
 distance = 20  # max distance from user to checkpoint to consider him near it.
@@ -28,7 +30,8 @@ updater.start_polling()
 #------------------------------- Commands --------------------------------------
 
 def start(update, context):
-    """ inicia la conversa. """
+    """ Carries out the preparations and starts the conversation. """
+
     init_map(city)
 
     user = update.effective_chat.first_name
@@ -41,7 +44,7 @@ Si ja em coneixes, a on anem avui?
     send_markdown(update, context, salute)
 
 def help(update, context):
-    """ ofereix ajuda sobre les comandes disponibles. """
+    """ Explains how the bot works; which commands you can use, how to use it and what you will get about it. """
 
     user = update.effective_chat.first_name
     help_message = '''
@@ -59,7 +62,8 @@ Un cop fet això t'explico tot el que em pots demanar que faci:
     send_markdown(update, context, help_message)
 
 def author(update, context):
-    """ Mostra el nom dels autors del projecte. """
+    """ Shows the authors names and info. """
+
     info = '''
 Els meus creadors són:
 - *Tomás Gadea Alcaide* 🧑🏼‍💻
@@ -71,8 +75,8 @@ Els meus creadors són:
     send_markdown(update, context, info)
 
 def go(update, context):
-    """ comença a guiar l'usuari per arrivar de la seva posició actual fins al punt de destí escollit. Per exemple; /go Campus Nord. """
-# Suposem que només ens movem per Barcelona.
+    """ Starts the user's journey to reach the choosen destination specified after /go. """
+
     global map
 
     try:
@@ -99,6 +103,8 @@ def go(update, context):
         dstErr(update, context)
 
 def zoom(update, context):
+    """ Sends a map with only the actual checkpoint and the path to reach the two folowing ones. """
+
     try:
         check = context.user_data['checkpoint']
         directions = context.user_data['directions']
@@ -116,7 +122,8 @@ def zoom(update, context):
         zoomErr(update, context)
 
 def cancel(update, context):
-    """ Finalitza la ruta actual de l'usuari. """
+    """ Stops the current user's journey. """
+
     user = update.effective_chat.first_name
     print("canceled by", user)
 
@@ -126,6 +133,8 @@ def cancel(update, context):
     context.user_data['checkpoint'] = 0
 
 def jump(update, context):
+    """ It's a debugging command that simulates an user's progress. """
+
     n = int(context.args[0])
     c = context.user_data['checkpoint']
     d = context.user_data['directions']
@@ -176,6 +185,7 @@ Utilitza la comanda */go* _destinació_ per començar la ruta.
 #------------------------------- Messages --------------------------------------
 def send_photo(update, context, chopped_dir):
     """ Generates, saves, sends, and deletes an image of journey """
+
     global map
     location = context.user_data['location']
     destination = context.user_data['destination']
@@ -190,6 +200,7 @@ def send_photo(update, context, chopped_dir):
     os.remove(user_id + '.png')
 
 def send_first_text(update, context, directions):
+    """ Sends the first text message that the user will recive when starts a journey. """
 
     info = '''
 Comença al *Checkpoint #1*:
@@ -217,6 +228,7 @@ Molt bé: has arribat al *Checkpoint %d*!
     send_markdown(update, context, info)
 
 def send_markdown(update, context, info):
+    """ Sends a message containing the text info in markdown format. """
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -228,12 +240,16 @@ def send_markdown(update, context, info):
 #----------------------------- Aux functions -----------------------------------
 
 def store(context, message, destination, directions):
+    """ Defines and stores the essential user data at the start of a journey. """
+
     context.user_data['address'] = message
     context.user_data['destination'] = destination
     context.user_data['directions'] = directions
     context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
 
 def end_route(update, context):
+    """ Sends the last text message that the user will recive and stops the journey when the user finishes it. """
+
     user = update.effective_chat.first_name
     address = context.user_data['address']
     info = '''
@@ -248,6 +264,7 @@ Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
     cancel(update, context)
 
 def angle(directions, check):
+    """ Returns a markdown string explaining the next direction that the user should take. """
 
     n = len(directions)
     if check <= 1 or check >= n:
@@ -256,26 +273,24 @@ def angle(directions, check):
         a = directions[check]['angle']
 
     if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
-        angle = '''Gira lleugerament a la dreta '''
+        return '''Gira lleugerament a la dreta '''
     elif 67.5 <= a <= 112.5 or -292.5 <= a <= -247.5:
-        angle = '''Gira a la dreta '''
+        return '''Gira a la dreta '''
     elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
-        angle = '''Gira pronunciadament a la dreta '''
+        return '''Gira pronunciadament a la dreta '''
 
 
     elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
-        angle = '''Gira lleugerament a l'esquerra '''
+        return '''Gira lleugerament a l'esquerra '''
     elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
-        angle = '''Gira a l'esquerra '''
+        return '''Gira a l'esquerra '''
     elif 292.5 <= a <= 337.5 or -157.5 <= a <= -112.5:
-        angle = '''Gira pronunciadament a l'esquerra '''
+        return '''Gira pronunciadament a l'esquerra '''
 
-    else:
-        angle = '''Segueix recte '''
-
-    return angle
+    return '''Segueix recte '''
 
 def meters(directions, check):
+    """ Returns a markdown message with the amount of meters that the user should travel. """
 
     try:
         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
@@ -289,7 +304,8 @@ def meters(directions, check):
         print(traceback.format_exc())
 
 def init_map(city):
-    """ Descarrega i guarda el mapa de city, si ja existeix simplement el carrega. """
+    """ Downloads and saves the city map, if it already exists only loads it. """
+
     global map
     try:
         map = guide.load_graph(city + "_map")
@@ -304,7 +320,8 @@ def init_map(city):
 #-------------------------- Location functions ---------------------------------
 
 def where(update, context):
-    """ Dóna la localització actual de l'usuari. Aquesta funció no pot ser cridada per l'usuari, es crida automàticament quan es comparteix la ubicació """
+    """ Invokes the corresponding function if it's invoked automaticaly, if changes the current user location, or if we use jump command while debugging.  """
+
     if 'location' not in context.user_data or not context.user_data['test']:
         regular_where(update, context)
 
@@ -312,6 +329,7 @@ def where(update, context):
         testing_where(update, context)
 
 def regular_where(update, context):
+    """ Is invoked automaticaly if the user current location changes and actualizes it in our data base. """
 
     message = update.edited_message if update.edited_message else update.message
     loc = context.user_data['location'] = (
@@ -320,10 +338,13 @@ def regular_where(update, context):
     common_where(update, context, loc)
 
 def testing_where(update, context):
+    """ Is invoked by the admin to debug and simulates the regular_where. """
+
     loc = context.user_data['location']
     common_where(update, context, loc)
 
 def common_where(update, context, loc):
+    """ Sends a message with new instructions to the user if he has advenced to another checkpoint. """
 
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
@@ -338,6 +359,8 @@ def common_where(update, context, loc):
         next_checkpoint(update, context, nearest_check, directions)
 
 def next_checkpoint(update, context, nearest_check, directions):
+    """ Sends the message with the instructions to find the folowing checkpoint, in directions, to nearest_check. """
+
     nc = nearest_check
     last = len(directions) - 1
     if nc == last: # last node
