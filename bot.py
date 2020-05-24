@@ -159,7 +159,7 @@ def dstErr(update, context):
     dstErr = '''
 No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
 
-Prova l'estructura */go* _Lloc, País_
+Prova l'estructura */go* _Lloc, Localitat, País_
 '''
     send_markdown(update, context, dstErr)
 

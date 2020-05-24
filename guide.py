@@ -104,9 +104,9 @@ def _from_path_to_directions(graph, sp_nodes, source_location, destination_locat
     # and not with different pieces
 
     edges = \
-        [_edges_fist_edge()] + \
+        [_edges_fist_edge(graph, sp_nodes, source_location)] + \
         ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + \
-        [_edges_last_edge()]
+        [_edges_last_edge(graph, sp_nodes, destination_location)]
 
     coord_nodes = \
         [source_location] + \
@@ -219,27 +219,25 @@ def _marker_line(directions, i):
 
     diff = ((long1, lat1), (long2, lat2))
 
-    m_color, m_width = _get_marker_feature(i)
-    l_color, l_width = _get_line_feature(i)
+    n = len(directions)
+
+    m_color, m_width = _get_marker_feature(i, n)
+    l_color, l_width = _get_line_feature(i, n)
 
     marker = CircleMarker((long1, lat1), m_color, m_width)
     line = None if l_color is None else Line(diff, l_color, l_width)
 
     return marker, line
 
-def _get_marker_feature(i):
+def _get_marker_feature(i, n):
     """ Returns the color and width of the marker depending on his position i """
-
-    n = len(directions)
 
     if i == 0 or i == n - 1:
         return 'blue', 20
     return 'red', 10
 
-def _get_line_feature(i):
+def _get_line_feature(i, n):
     """ Returns the color and width of the line or None, None (if it shouldn't be printed) depending on his position i """
-
-    n = len(directions)
 
     if i == n - 1:
         return None, None
