@@ -1,15 +1,30 @@
 ############################## SCARLETT-GUIDEBOT ###############################
+#!/usr/bin/env python
+""" This is the script for Scarlett-guidebot: A telegram-based bot that
+interacts with the user sending the shortests journeys from point A to point B
+in real time.
 
-import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import guide
-import os
+This bot is thought to work in Barcelona. Then, coding language is English, but
+interaction with user is done in Catalan."""
+
+
+import os  # standard library
 import traceback
+
+import telegram  # 3rd party packages
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import numpy as np
 
-# ----------------------------- Initialization ----------------------------------
+import guide  # local source
 
-""" This bot works in Barcelona and her language is catalan. """
+
+__author__ = "Pau Matas and Tomás Gadea"
+__maintainer__ = "Pau Matas and Tomás Gadea"
+__email__ = "paumatasalbi@gmail.com and 01tomas.gadea@gmail.com"
+__status__ = "Production"
+
+
+# ----------------------------- Initialization ---------------------------------
 
 # Constants:
 city = "Barcelona"
@@ -24,9 +39,9 @@ dispatcher = updater.dispatcher
 
 updater.start_polling()
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-# ------------------------------- Commands --------------------------------------
+# ------------------------------- Commands -------------------------------------
 
 
 def start(update, context):
@@ -80,7 +95,9 @@ Els meus creadors són:
 
 
 def go(update, context):
-    """ Given a destination (str) as an argument of the command, starts the user's shortest journey to reach the chosen destination from current location. """
+    """ Given a destination (str) as an argument of the command, starts the
+    user's shortest journey to reach the chosen destination from current
+    location. """
 
     global map
 
@@ -116,7 +133,8 @@ def go(update, context):
 
 
 def zoom(update, context):
-    """ Sends an image with of the path from current checkpoint to next 2 checkpoints. """
+    """ Sends an image with of the path from current checkpoint to next 2
+    checkpoints. """
 
     try:
         check = context.user_data['checkpoint']  # KeyError if dict empty
@@ -152,7 +170,8 @@ def cancel(update, context):
 
 def jump(update, context):
     """ Debugging command. Simulates user's progress.
-    Given an argument n (int) updates artificially the location of user to a point near n-th checkpoint from current checkpoint. """
+    Given an argument n (int) updates artificially the location of user to a
+    point near n-th checkpoint from current checkpoint. """
 
     n = int(context.args[0])  # n could be negative(< 0) (then, jumps back)
     c = context.user_data['checkpoint']
@@ -243,7 +262,8 @@ def send_photo(update, context, chopped_dir):
 
 
 def send_first_text(update, context, directions):
-    """ Sends the first markdown text message that the user will recive when starts a journey. """
+    """ Sends the first markdown text message that the user will recive when
+    starts a journey. """
 
     info = '''
 Comença al *Checkpoint #1*:
@@ -283,13 +303,14 @@ def send_markdown(update, context, info):
         text=info,
         parse_mode=telegram.ParseMode.MARKDOWN)
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-# ----------------------------- Aux functions -----------------------------------
+# ----------------------------- Aux functions ----------------------------------
 
 
 def store(context, message, destination, directions):
-    """ Defines and stores the essential user data at the start of a journey. """
+    """ Defines and stores the essential user data at the start of a journey.
+    """
 
     context.user_data['address'] = message
     context.user_data['destination'] = destination
@@ -298,7 +319,8 @@ def store(context, message, destination, directions):
 
 
 def end_route(update, context):
-    """ Sends the last markdown text message that the user will recive and cancel the journey, when the user ends journey. """
+    """ Sends the last markdown text message that the user will recive and
+    cancel the journey, when the user ends journey. """
 
     user = update.effective_chat.first_name
     address = context.user_data['address']
@@ -315,7 +337,8 @@ Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
 
 
 def angle(directions, check):
-    """ Returns a markdown string explaining the next direction that the user should take. """
+    """ Returns a markdown string explaining the next direction that the user
+    should take. """
 
     n = len(directions)
     # Check directions limits:
@@ -347,7 +370,8 @@ def angle(directions, check):
 
 
 def meters(directions, check):
-    """ Returns a markdown message with the amount of meters that the user should travel. """
+    """ Returns a markdown message with the amount of meters that the user
+    should travel. """
 
     meters = '''i avança '''
     if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
@@ -357,7 +381,8 @@ def meters(directions, check):
 
 
 def init_map(city):
-    """ Downloads and saves the city map, if it already exists only loads it. """
+    """ Downloads and saves the city map, if it already exists only loads it.
+    """
 
     global map
     try:
@@ -368,13 +393,14 @@ def init_map(city):
         guide.save_graph(map, city + "_map")
         print("downloaded!")
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-# -------------------------- Location functions ---------------------------------
+# -------------------------- Location functions --------------------------------
 
 
 def where(update, context):
-    """ Called automaticaly, (if the current user location changes) or called by jump command while debugging.
+    """ Called automaticaly, (if the current user location changes) or called by
+    jump command while debugging.
     Manages the directions to be sent to the user when needed. """
 
     # check if we are testing:
@@ -386,7 +412,8 @@ def where(update, context):
 
 
 def regular_where(update, context):
-    """ Called if the user current location changes. Updates the location in user's dict. """
+    """ Called if the user current location changes. Updates the location in
+    user's dict. """
 
     message = update.edited_message if update.edited_message else update.message
     loc = context.user_data['location'] = (
@@ -396,14 +423,16 @@ def regular_where(update, context):
 
 
 def testing_where(update, context):
-    """ Called when admin is debugging (in testing mode). Uses the artifial location (already in user's dict). """
+    """ Called when admin is debugging (in testing mode). Uses the artifial
+    location (already in user's dict). """
 
     loc = context.user_data['location']
     common_where(update, context, loc)
 
 
 def common_where(update, context, loc):
-    """ Sends a markdown message with new instructions to the user if has arrived to another checkpoint. """
+    """ Sends a markdown message with new instructions to the user if has
+    arrived to another checkpoint. """
 
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
@@ -423,7 +452,8 @@ def common_where(update, context, loc):
 
 
 def next_checkpoint(update, context, nearest_check, directions):
-    """ Sends the markdown message with the instructions to arrive from nearest_check to the next checkpoint. """
+    """ Sends the markdown message with the instructions to arrive from
+    nearest_check to the next checkpoint. """
 
     nc = nearest_check
     last = len(directions) - 1
@@ -435,15 +465,18 @@ def next_checkpoint(update, context, nearest_check, directions):
         send_photo(update, context, directions[nc:])
         send_mid_text(update, context, nc)
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # Commands and handlers:
 COMMANDS = {
     'start': "inicia la conversa amb mi.",
-    'help': "et torno a oferir aquesta ajuda sobre les meves comandes disponibles els cops que necessitis.",
+    'help': "et torno a oferir aquesta ajuda sobre les meves comandes \
+    disponibles els cops que necessitis.",
     'author': "si ets curiós et puc dir qui m'ha creat.",
-    'go destí': "et començo a guiar per a arrivar de la teva posició actual fins al punt de destí que m'hagis especificat.🧭\nT'anire enviant indicacions al teu dispositiu de les direccions que has de prendre.📲",
+    'go destí': "et començo a guiar per a arrivar de la teva posició actual \
+    fins al punt de destí que m'hagis especificat.🧭\nT'anire enviant \
+    indicacions al teu dispositiu de les direccions que has de prendre.📲",
     'cancel': "cancel·la el sistema de guia actiu.",
     'zoom': "Envia una foto ampliada amb els 3 pròxims checkpoints."
 }
