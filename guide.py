@@ -20,6 +20,7 @@ from haversine import haversine
 from staticmap import StaticMap, Line, CircleMarker
 
 
+__title__ = "Guide"
 __author__ = "Pau Matas and Tomás Gadea"
 __maintainer__ = "Pau Matas and Tomás Gadea"
 __email__ = "paumatasalbi@gmail.com and 01tomas.gadea@gmail.com"
