@@ -45,7 +45,7 @@ updater.start_polling()
 
 
 def start(update, context):
-    """ Carries out the preparations and starts the conversation. """
+    """ Initializes the city graph and starts the conversation. """
 
     init_map(city)
 
