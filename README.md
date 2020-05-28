@@ -70,7 +70,7 @@ To run the bot you must follow these steps:
 python3 bot.py
 ```
 * **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation and ask Scarlett for her commands.
-![2nd step](2nd-step.png)
+![2nd step](2nd-step.png =100x20)
 
 
 ```
