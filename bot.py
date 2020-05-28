@@ -85,6 +85,8 @@ def go(update, context):
         message = str(' '.join(context.args))
 
         destination = guide.address_coord(message)  # (lat, long)
+        if destination is None:
+            raise Exception
         directions = guide.get_directions(map, location, destination)  # dict
 
         # Save vars in user dictionary
@@ -370,7 +372,7 @@ def next_checkpoint(update, context, nearest_check, directions):
         context.user_data['checkpoint'] = nc
         send_photo(update, context, directions[nc:])
         send_mid_text(update, context, nc)
-        
+
 #-------------------------------------------------------------------------------
 
 
