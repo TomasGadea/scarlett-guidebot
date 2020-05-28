@@ -167,7 +167,7 @@ def jump(update, context):
         n = 0
 
     next_c = context.user_data['directions'][c+n]['src']  # next n-th checkpoint
-    p_near = (src[0] - 0.0001, src[1] - 0.0001)  # point near next_c
+    p_near = (next_c[0] - 0.0001, next_c[1] - 0.0001)  # point near next_c
     context.user_data['location'] = p_near
     context.user_data['test'] = True  # True for testing mode (see where() )
     where(update, context)
@@ -225,11 +225,12 @@ Utilitza la comanda */go* _destinació_ per començar la ruta.
 
 
 def send_photo(update, context, chopped_dir):
-    """ Generates, saves, sends, and deletes an image of journey """
+    """ Generates, saves, sends, and deletes a staticmap image of journey. """
 
     global map
     location = context.user_data['location']
     destination = context.user_data['destination']
+    # Get user_id to name uniquely the image file:
     user_id = str(update.message.from_user.id)
 
     guide.plot_directions(map, location, destination, chopped_dir, user_id)
@@ -242,7 +243,7 @@ def send_photo(update, context, chopped_dir):
 
 
 def send_first_text(update, context, directions):
-    """ Sends the first text message that the user will recive when starts a journey. """
+    """ Sends the first markdown text message that the user will recive when starts a journey. """
 
     info = '''
 Comença al *Checkpoint #1*:
@@ -253,7 +254,7 @@ Comença al *Checkpoint #1*:
 
 
 def send_mid_text(update, context, check):
-    """ Sends text from middle checkpoints. """
+    """ Sends markdown text from middle checkpoints. """
 
     directions = context.user_data['directions']
     info = '''
@@ -264,16 +265,18 @@ Molt bé: has arribat al *Checkpoint %d*!
     info += angle(directions, check)
     info += meters(directions, check)
 
+    # Add streetname and next checkpoint:
     if directions[check]['next_name'] is not None:
         info += ''' per ''' + \
-            directions[check]['next_name'] + \
-                ''' per arribar al *Checkpoint %d*''' % (check+1)
+            directions[check]['next_name']
+
+    info += ''' per arribar al *Checkpoint %d*''' % (check+1)
 
     send_markdown(update, context, info)
 
 
 def send_markdown(update, context, info):
-    """ Sends a message containing the text info in markdown format. """
+    """ Sends a message containing the given text (info) in markdown format. """
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -295,7 +298,7 @@ def store(context, message, destination, directions):
 
 
 def end_route(update, context):
-    """ Sends the last text message that the user will recive and stops the journey when the user finishes it. """
+    """ Sends the last markdown text message that the user will recive and cancel the journey, when the user ends journey. """
 
     user = update.effective_chat.first_name
     address = context.user_data['address']
@@ -315,10 +318,16 @@ def angle(directions, check):
     """ Returns a markdown string explaining the next direction that the user should take. """
 
     n = len(directions)
+    # Check directions limits:
     if check <= 1 or check >= n:
-        a = 0   # Assume first and last angle is 0
+        a = 0   # Assume that first and last angle of journey is 0
     else:
         a = directions[check]['angle']
+
+    if a == None:
+        return '''Segueix '''
+
+        # Divide the 360º circumference in 8 sections. (see Readme.md)
 
     if 22.5 <= a <= 67.5 or -337.5 <= a <= -292.5:
         return '''Gira lleugerament a la dreta '''
@@ -340,17 +349,11 @@ def angle(directions, check):
 def meters(directions, check):
     """ Returns a markdown message with the amount of meters that the user should travel. """
 
-    try:
-        if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
-            meters = '''i avança ''' + \
-                str(round(directions[check]['length'])) + ''' metres'''
-        else:
-            print("no lenght")
+    meters = '''i avança '''
+    if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
+        meters += str(round(directions[check]['length'])) + ''' metres'''
 
-        return meters
-
-    except Exception:
-        print(traceback.format_exc())
+    return meters
 
 
 def init_map(city):
