@@ -1,21 +1,43 @@
 ################################ GUIDE MODULE ##################################
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+""" This is the python script of the guide module. This module contains all the
+functions needed to deal with city graphs, and manage the algorithms to perform
+an efficient treatement of these graphs. The module is mostly based on osmnx and
+networkx packages.
+
+Eventhough this module has been built to be perfectly suitable with the
+bot module, it works under the hood. This means it is not directly related with
+the bot and could be used on multiple purposes. """
+
+
+import pickle  # standard library
+
+import osmnx as ox  # 3rd party packages
 import networkx as nx
-import osmnx as ox
 from haversine import haversine
 from staticmap import StaticMap, Line, CircleMarker
-import pickle
+
+
+__author__ = "Pau Matas and Tomás Gadea"
+__maintainer__ = "Pau Matas and Tomás Gadea"
+__email__ = "paumatasalbi@gmail.com and 01tomas.gadea@gmail.com"
+__status__ = "Production"
+
 
 # ---------------------------- Public Functions ---------------------------------
 
 
 def download_graph(place):
-    """ Downloads a graph from OpenStreetMap and returns it. Parameter is a string with the name of the location. """
+    """ Downloads a graph from OpenStreetMap and returns it.
+    Parameter is a string with the name of the location. """
 
     graph = ox.graph_from_place(
         place, network_type='drive', simplify=True)
     ox.geo_utils.add_edge_bearings(graph)
 
+    # filter and delete extra info of the graph:
     for node1, info1 in graph.nodes.items():
         for node2, info2 in graph.adj[node1].items():
             edge = info2[0]
@@ -26,9 +48,10 @@ def download_graph(place):
 
 
 def save_graph(graph, filename):
-    """ Saves a graph (passed as first parameter) into a pickle file (named assecond parameter). """
+    """ Saves a graph(first parameter) into a pickle file (named as second
+    parameter). """
 
-    f = open(filename, 'wb')
+    f = open(filename, 'wb')  # open on write mode
     pickle.dump(graph, f)
     f.close()
 
@@ -36,14 +59,14 @@ def save_graph(graph, filename):
 def load_graph(filename):
     """ Returns a graph read from a pickle file."""
 
-    f = open(filename, 'rb')
+    f = open(filename, 'rb')  # open on read mode
     graph = pickle.load(f)
     f.close()
     return graph
 
 
 def print_graph(graph):
-    """ Represents graphicaly the graph passed as parameter and summarizes its information. """
+    """ Prints nodes and edges of the graph, also a summary of its info. """
 
     print(nx.info(graph))
 
@@ -56,24 +79,29 @@ def print_graph(graph):
 
 
 def get_directions(graph, source_location, destination_location):
-    """ Returns a list of dictionaries that represents the information of the directions to go over the shortest path from the source_location to the destination_location."""
+    """ Returns a list of dictionaries that represents the information of the
+    directions to take in order to move from point A (source_location) to point
+    B (destination_location) using the shortest path."""
 
-    src = _closest_node_to(graph, source_location)
-    dst = _closest_node_to(graph, destination_location)
+    src = _closest_node_to(graph, source_location)  # node represented by ID
+    dst = _closest_node_to(graph, destination_location)  # node repr. by ID
 
-    sp_nodes = nx.shortest_path(graph, src, dst)  # nodes with ID
+    sp_nodes = nx.shortest_path(graph, src, dst)  # list of nodes repr. by ID
 
-    return _from_path_to_directions(graph, sp_nodes, source_location, destination_location)
+    return _from_path_to_directions(graph, sp_nodes, source_location,
+                                    destination_location)
 
 
-def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
-    """ Plots and saves the directions from source_location to destination_location in a file named filename.png. """
+def plot_directions(graph, source_location, destination_location, directions,
+                    filename, width=400, height=400):
+    """ Plots and saves the directions from source_location to
+    destination_location in a file named "filename.png"  """
 
-    m = StaticMap(width, height)
+    m = StaticMap(width, height)  # create a StaticMap canvas
 
     for i in enumerate(directions):
-
-        # we are only interested in i[0]
+        # enumerate(directions) returns an enumeration object
+        # from this object we are only interested in i[0]
         marker, line = _marker_line(directions, i[0])
         m.add_marker(marker)
         if line is not None:
@@ -84,19 +112,19 @@ def plot_directions(graph, source_location, destination_location, directions, fi
 
 
 def dist(a, b):
-    """ Returns the geografical distance from a=(lat,long) to b=(lat,long). """
+    """ Returns the geografical distance in meters from a to b, being a and b
+    tuples of latitude and longitude (lat,long). """
 
     return haversine(a, b, unit='m')
 
 
 def address_coord(address):
-    # from_address
-    """ Returns (lat, long) of a point given by an address (str). """
+    """ Returns the tuple (lat,long) of a point given by an address (str). """
 
     try:
         return ox.geo_utils.geocode(address)
 
-    except Exception:
+    except Exception:  # raised when address is not found in the city graph
         return None
 
 # -------------------------------------------------------------------------------
@@ -105,18 +133,21 @@ def address_coord(address):
 
 
 def _closest_node_to(graph, source_location):
-    """ Return the graph node nearest to some specified source_location: (lat, lng). """
+    """ Returns the nearest graph node (by ID) to some specified
+    source_location repr. by tuple: (lat,long). """
 
-    return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
+    return ox.geo_utils.get_nearest_node(graph, source_location,
+                                         method='haversine')
 
 
-def _from_path_to_directions(graph, sp_nodes, source_location, destination_location):
-    """ Returns the transformation from a path (represented as a list of nodes) to directions in their correct format (dictionary). """
+def _from_path_to_directions(graph, sp_nodes, source_location,
+                             destination_location):
+    """ Returns the transformation from a path (repr. as a list of nodes) to
+    directions in their correct format: list of dictionaries. """
 
-    # we add the additional nodes and edges such that we can reach the user and
-    # the destination, making easier to transform to sections with only one list
-    # and not with different pieces
-
+    # Create edge and node lists adding the additional nodes and edges
+    # such that we can reach the source_location and the destination_location
+    # from the graph nodes (from user to street and from street to destination):
     edges = \
         [_edges_fist_edge(graph, sp_nodes, source_location)] + \
         ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + \
@@ -133,25 +164,30 @@ def _from_path_to_directions(graph, sp_nodes, source_location, destination_locat
 
     n = len(coord_nodes)
 
+    # Create the list of dicts (directions):
+    # (Also, only interested in i[0] from enumerate)
     directions = \
         [_section(edges, coord_nodes, i[0], n)
          for i in enumerate(coord_nodes) if i[0] < n - 1]
 
-    return directions  # is a list of dictionaries
+    return directions
 
 
 def _edges_fist_edge(graph, sp_nodes, source_location):
-    """ Returns the first edge of the list called edges in his correct form. """
+    """ Creates and returns an edge from source_location to first node in
+    sp_nodes. Edge is in triplet format: (node1, node2, {'lenght':value}) """
 
     src = sp_nodes[0]
     src_coord = (graph.nodes[src]['y'], graph.nodes[src]['x'])
-    src_length = dist(source_location, src_coord)
+    src_length = dist(source_location, src_coord)  # haversine distance
 
     return (source_location, src_coord, {'length': src_length})
 
 
 def _edges_last_edge(graph, sp_nodes, destination_location):
-    """ Returns the last edge of the list called edges in his correct form. """
+    """ Creates and returns an edge from last node in sp_npdes to
+    destination_location.
+    Edge is in triplet format: (node1, node2, {'lenght':value})"""
 
     dst = sp_nodes[-1]
     dst_coord = (graph.nodes[dst]['y'], graph.nodes[dst]['x'])
@@ -161,19 +197,22 @@ def _edges_last_edge(graph, sp_nodes, destination_location):
 
 
 def _id_coord(graph, node):
-    # id_to_coord
-    """ Given a graph and a node makes sure that his format is geocords. If it isn't (is in id format) returns the coordinates. """
+    """ Given a graph and a node (by ID) returns the coordinates of the node.
+    Otherwise (node already in coords format) returns the same expression. """
 
     if not isinstance(node, tuple):
         return (graph.nodes[node]['y'], graph.nodes[node]['x'])
 
     return node
 
+
 # --> Section functions:
 
-
 def _section(edges, coord_nodes, i, n):
-    """ From a list that represents a path of n nodes (coord_nodes) and its relative in edges (edges) returns the section (dictionary) that starts in the node i of the list. """
+    """ From a list (coord_nodes) that represents a path of n nodes and a
+    list (edges) of edges, returns the section (dictionary) that starts in the
+    node i of coord_nodes. The section contains relevant info about the
+    directions to be given in order to reach the destination of the travel. """
 
     section = {'angle': _get_section_angle(edges, i, n),
                'src': coord_nodes[i],
@@ -187,7 +226,8 @@ def _section(edges, coord_nodes, i, n):
 
 
 def _get_section_angle(edges, i, n):
-    """ Returns the angle of the section formed by the edges i and i + 1 in edges if we can calculate it. """
+    """ Returns the angle of the section formed by the edges i and i + 1 in the
+    list of edges, if we can compute it. """
 
     if i >= n or i <= 1 or not 'bearing' in edges[i-1] or not 'bearing' in edges[i]:
         return None
@@ -196,7 +236,8 @@ def _get_section_angle(edges, i, n):
 
 
 def _get_section_dst(coord_nodes, i, n):
-    """ Returns the dst of the section formed by the nodes i, i + 1 and i + 2 in coord_nodes if it is not out of range. """
+    """ Returns the "dst" node (by coords) of the section formed by the nodes i,
+    i + 1 and i + 2 in coord_nodes, if it is not out of range. """
 
     if i + 2 <= n - 1:
         return coord_nodes[i + 2]
@@ -204,7 +245,8 @@ def _get_section_dst(coord_nodes, i, n):
 
 
 def _get_section_next_name(edges, i, n):
-    """ Returns the next_name of the section that corresponds to the name of the street edges[i + 1] when is not out of range. """
+    """ Returns the street name "next_name" of the section that corresponds to
+    the street in edges[i + 1], when is not out of range. """
 
     if i + 2 <= n - 1:
         return _get_street_name(edges[i + 1])
@@ -212,35 +254,41 @@ def _get_section_next_name(edges, i, n):
 
 
 def _get_street_name(edge):
-    """ Returns the name of the street represented by the edge edge if it exists. """
+    """ Returns the name of the street that corresponds to the given edge. """
 
     if 'name' in edge:
         if isinstance(edge['name'], str):
             return edge['name']
         elif isinstance(edge['name'], list):
+            # If multiple street names, return the first name.
             return edge['name'][0]
     return None
 
 
 def _get_street_length(edge):
-    """ Returns the length of the street represented by the edge edge if it exists. """
+    """ Returns the length of the street that corresponds to the given edge,
+    if it exists. """
 
     if 'length' in edge:
         return edge['length']
     return None
 
+
 # --> Plot directions sub-functions:
 
-
 def _marker_line(directions, i):
-    """ Returns one line and marker with diferent characteristics depending on the type of the section given. """
+    """ Returns a StaticMap line and marker with different features depending on
+    the type of the section given. Section is obtained selecting the i-th dict
+    in directions. """
 
+    # Get coords (lat1,long1), (lat2,long2) of two consecutive nodes (1 and 2):
     lat1 = directions[i]['src'][0]
     long1 = directions[i]['src'][1]
 
     lat2 = directions[i]['mid'][0]
     long2 = directions[i]['mid'][1]
 
+    # Compute the vector from node1 to node2 as its difference of coords:
     diff = ((long1, lat1), (long2, lat2))
 
     n = len(directions)
@@ -248,14 +296,17 @@ def _marker_line(directions, i):
     m_color, m_width = _get_marker_feature(i, n)
     l_color, l_width = _get_line_feature(i, n)
 
+    # CircleMarker needs coords, color and with of marker.
     marker = CircleMarker((long1, lat1), m_color, m_width)
+    # Line needs a vector, color and with for the line.
     line = None if l_color is None else Line(diff, l_color, l_width)
 
     return marker, line
 
 
 def _get_marker_feature(i, n):
-    """ Returns the color and width of the marker depending on his position i. """
+    """ Returns the color and width of the marker depending on his position (i)
+    in the path of the travel: Blue for extrema, and red for middle markers."""
 
     if i == 0 or i == n - 1:
         return 'blue', 20
@@ -263,7 +314,8 @@ def _get_marker_feature(i, n):
 
 
 def _get_line_feature(i, n):
-    """ Returns the color and width of the line or None, None (if it shouldn't be printed) depending on his position i. """
+    """ Returns the color and width of the line with position 'i' in the path of
+    the travel. Returns None, None if the line shouldn't be printed. """
 
     if i == n - 1:
         return None, None

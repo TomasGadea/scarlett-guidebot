@@ -1,6 +1,8 @@
 ############################## SCARLETT-GUIDEBOT ###############################
 #!/usr/bin/env python
-""" This is the script for Scarlett-guidebot: A telegram-based bot that
+# -*- coding: utf-8 -*-
+
+""" This is the python script for Scarlett-guidebot: A telegram-based bot that
 interacts with the user sending the shortests journeys from point A to point B
 in real time.
 
@@ -8,7 +10,7 @@ This bot is thought to work in Barcelona. Then, coding language is English, but
 interaction with user is done in Catalan."""
 
 
-import os  # standard library
+import os  # standard libraries
 import traceback
 
 import telegram  # 3rd party packages
