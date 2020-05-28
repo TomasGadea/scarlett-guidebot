@@ -6,7 +6,8 @@ from haversine import haversine
 from staticmap import StaticMap, Line, CircleMarker
 import pickle
 
-#---------------------------- Public Functions ---------------------------------
+# ---------------------------- Public Functions ---------------------------------
+
 
 def download_graph(place):
     """ Downloads a graph from OpenStreetMap and returns it. Parameter is a string with the name of the location. """
@@ -23,12 +24,14 @@ def download_graph(place):
 
     return graph
 
+
 def save_graph(graph, filename):
     """ Saves a graph (passed as first parameter) into a pickle file (named assecond parameter). """
 
     f = open(filename, 'wb')
     pickle.dump(graph, f)
     f.close()
+
 
 def load_graph(filename):
     """ Returns a graph read from a pickle file."""
@@ -37,6 +40,7 @@ def load_graph(filename):
     graph = pickle.load(f)
     f.close()
     return graph
+
 
 def print_graph(graph):
     """ Represents graphicaly the graph passed as parameter and summarizes its information. """
@@ -50,6 +54,7 @@ def print_graph(graph):
             edge = info2[0]
             print('        ', edge)
 
+
 def get_directions(graph, source_location, destination_location):
     """ Returns a list of dictionaries that represents the information of the directions to go over the shortest path from the source_location to the destination_location."""
 
@@ -59,6 +64,7 @@ def get_directions(graph, source_location, destination_location):
     sp_nodes = nx.shortest_path(graph, src, dst)  # nodes with ID
 
     return _from_path_to_directions(graph, sp_nodes, source_location, destination_location)
+
 
 def plot_directions(graph, source_location, destination_location, directions, filename, width=400, height=400):
     """ Plots and saves the directions from source_location to destination_location in a file named filename.png. """
@@ -76,27 +82,40 @@ def plot_directions(graph, source_location, destination_location, directions, fi
     image = m.render()
     image.save(str(filename) + '.png')
 
+
 def dist(a, b):
     """ Returns the geografical distance from a=(lat,long) to b=(lat,long). """
 
     return haversine(a, b, unit='m')
 
+
 def address_coord(address):
     # from_address
     """ Returns (lat, long) of a point given by an address (str). """
+<<<<<<< HEAD
     try:
         return ox.geo_utils.geocode(address)
     except Exception:
         return None
+=======
 
-#-------------------------------------------------------------------------------
+    try:
+        return ox.geo_utils.geocode(address)
 
-#---------------------------- Private Functions --------------------------------
+    except Exception:
+        return None
+
+# -------------------------------------------------------------------------------
+>>>>>>> 69d8c4c78a3ea7bf3b9df4d00b50ca64a3b460d3
+
+# ---------------------------- Private Functions --------------------------------
+
 
 def _closest_node_to(graph, source_location):
     """ Return the graph node nearest to some specified source_location: (lat, lng). """
 
     return ox.geo_utils.get_nearest_node(graph, source_location, method='haversine')
+
 
 def _from_path_to_directions(graph, sp_nodes, source_location, destination_location):
     """ Returns the transformation from a path (represented as a list of nodes) to directions in their correct format (dictionary). """
@@ -127,6 +146,7 @@ def _from_path_to_directions(graph, sp_nodes, source_location, destination_locat
 
     return directions  # is a list of dictionaries
 
+
 def _edges_fist_edge(graph, sp_nodes, source_location):
     """ Returns the first edge of the list called edges in his correct form. """
 
@@ -135,6 +155,7 @@ def _edges_fist_edge(graph, sp_nodes, source_location):
     src_length = dist(source_location, src_coord)
 
     return (source_location, src_coord, {'length': src_length})
+
 
 def _edges_last_edge(graph, sp_nodes, destination_location):
     """ Returns the last edge of the list called edges in his correct form. """
@@ -145,6 +166,7 @@ def _edges_last_edge(graph, sp_nodes, destination_location):
 
     return (dst_coord, destination_location, {'length': dst_length})
 
+
 def _id_coord(graph, node):
     # id_to_coord
     """ Given a graph and a node makes sure that his format is geocords. If it isn't (is in id format) returns the coordinates. """
@@ -154,7 +176,8 @@ def _id_coord(graph, node):
 
     return node
 
-#--> Section functions:
+# --> Section functions:
+
 
 def _section(edges, coord_nodes, i, n):
     """ From a list that represents a path of n nodes (coord_nodes) and its relative in edges (edges) returns the section (dictionary) that starts in the node i of the list. """
@@ -169,6 +192,7 @@ def _section(edges, coord_nodes, i, n):
 
     return section
 
+
 def _get_section_angle(edges, i, n):
     """ Returns the angle of the section formed by the edges i and i + 1 in edges if we can calculate it. """
 
@@ -177,6 +201,7 @@ def _get_section_angle(edges, i, n):
 
     return edges[i]['bearing'] - edges[i-1]['bearing']
 
+
 def _get_section_dst(coord_nodes, i, n):
     """ Returns the dst of the section formed by the nodes i, i + 1 and i + 2 in coord_nodes if it is not out of range. """
 
@@ -184,12 +209,14 @@ def _get_section_dst(coord_nodes, i, n):
         return coord_nodes[i + 2]
     return None
 
+
 def _get_section_next_name(edges, i, n):
     """ Returns the next_name of the section that corresponds to the name of the street edges[i + 1] when is not out of range. """
 
     if i + 2 <= n - 1:
         return _get_street_name(edges[i + 1])
     return None
+
 
 def _get_street_name(edge):
     """ Returns the name of the street represented by the edge edge if it exists. """
@@ -201,6 +228,7 @@ def _get_street_name(edge):
             return edge['name'][0]
     return None
 
+
 def _get_street_length(edge):
     """ Returns the length of the street represented by the edge edge if it exists. """
 
@@ -208,7 +236,8 @@ def _get_street_length(edge):
         return edge['length']
     return None
 
-#--> Plot directions sub-functions:
+# --> Plot directions sub-functions:
+
 
 def _marker_line(directions, i):
     """ Returns one line and marker with diferent characteristics depending on the type of the section given. """
@@ -231,12 +260,14 @@ def _marker_line(directions, i):
 
     return marker, line
 
+
 def _get_marker_feature(i, n):
     """ Returns the color and width of the marker depending on his position i. """
 
     if i == 0 or i == n - 1:
         return 'blue', 20
     return 'red', 10
+
 
 def _get_line_feature(i, n):
     """ Returns the color and width of the line or None, None (if it shouldn't be printed) depending on his position i. """
