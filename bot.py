@@ -152,7 +152,7 @@ def cancel(update, context):
 
 def jump(update, context):
     """ Debugging command. Simulates user's progress.
-    Given an argument n (int) changes the location of user to a point near n-th checkpoint from current checkpoint. """
+    Given an argument n (int) updates artificially the location of user to a point near n-th checkpoint from current checkpoint. """
 
     n = int(context.args[0])  # n could be negative(< 0) (then, jumps back)
     c = context.user_data['checkpoint']
@@ -374,8 +374,10 @@ def init_map(city):
 
 
 def where(update, context):
-    """ Invokes the corresponding function if it's invoked automaticaly, if changes the current user location, or if we use jump command while debugging.  """
+    """ Called automaticaly, (if the current user location changes) or called by jump command while debugging.
+    Manages the directions to be sent to the user when needed. """
 
+    # check if we are testing:
     if 'location' not in context.user_data or not context.user_data['test']:
         regular_where(update, context)
 
@@ -384,7 +386,7 @@ def where(update, context):
 
 
 def regular_where(update, context):
-    """ Is invoked automaticaly if the user current location changes and actualizes it in our data base. """
+    """ Called if the user current location changes. Updates the location in user's dict. """
 
     message = update.edited_message if update.edited_message else update.message
     loc = context.user_data['location'] = (
@@ -394,30 +396,34 @@ def regular_where(update, context):
 
 
 def testing_where(update, context):
-    """ Is invoked by the admin to debug and simulates the regular_where. """
+    """ Called when admin is debugging (in testing mode). Uses the artifial location (already in user's dict). """
 
     loc = context.user_data['location']
     common_where(update, context, loc)
 
 
 def common_where(update, context, loc):
-    """ Sends a message with new instructions to the user if he has advenced to another checkpoint. """
+    """ Sends a markdown message with new instructions to the user if has arrived to another checkpoint. """
 
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
+    # Find nearest checkpoint to the user. Could be any checkpoint in the whole journey:
+    # Create a list with all distances from user to each checkpoint:
     dist_list = [guide.dist(loc, section['src']) for section in directions]
+    # Get checkpoint that minimizes the distance:
     nearest_check = np.argmin(dist_list)
     nearest_dist = dist_list[nearest_check]
 
     global distance
 
-    if nearest_dist <= distance:  # user near next checkpoint
+    if nearest_dist <= distance:
+        # user near checkpoint (See constant variable 'distance')
         next_checkpoint(update, context, nearest_check, directions)
 
 
 def next_checkpoint(update, context, nearest_check, directions):
-    """ Sends the message with the instructions to find the folowing checkpoint, in directions, to nearest_check. """
+    """ Sends the markdown message with the instructions to arrive from nearest_check to the next checkpoint. """
 
     nc = nearest_check
     last = len(directions) - 1
