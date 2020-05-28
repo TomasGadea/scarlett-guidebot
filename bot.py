@@ -428,14 +428,8 @@ def next_checkpoint(update, context, nearest_check, directions):
         context.user_data['checkpoint'] = nc
         send_photo(update, context, directions[nc:])
         send_mid_text(update, context, nc)
-<<<<<<< HEAD
 
 #-------------------------------------------------------------------------------
-=======
->>>>>>> 69d8c4c78a3ea7bf3b9df4d00b50ca64a3b460d3
-
-# -------------------------------------------------------------------------------
-
 
 # Commands and handlers:
 COMMANDS = {

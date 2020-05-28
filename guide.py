@@ -92,12 +92,6 @@ def dist(a, b):
 def address_coord(address):
     # from_address
     """ Returns (lat, long) of a point given by an address (str). """
-<<<<<<< HEAD
-    try:
-        return ox.geo_utils.geocode(address)
-    except Exception:
-        return None
-=======
 
     try:
         return ox.geo_utils.geocode(address)
@@ -106,7 +100,6 @@ def address_coord(address):
         return None
 
 # -------------------------------------------------------------------------------
->>>>>>> 69d8c4c78a3ea7bf3b9df4d00b50ca64a3b460d3
 
 # ---------------------------- Private Functions --------------------------------
 
