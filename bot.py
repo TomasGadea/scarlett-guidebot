@@ -7,7 +7,7 @@ import os
 import traceback
 import numpy as np
 
-#----------------------------- Initialization ----------------------------------
+# ----------------------------- Initialization ----------------------------------
 
 """ This bot works in Barcelona and her language is catalan. """
 
@@ -24,10 +24,10 @@ dispatcher = updater.dispatcher
 
 updater.start_polling()
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
+# ------------------------------- Commands --------------------------------------
 
-#------------------------------- Commands --------------------------------------
 
 def start(update, context):
     """ Carries out the preparations and starts the conversation. """
@@ -43,8 +43,9 @@ Si ja em coneixes, a on anem avui?
 
     send_markdown(update, context, salute)
 
+
 def help(update, context):
-    """ Explains how the bot works; which commands you can use, how to use it and what you will get about it. """
+    """ Sends the user a markdown text explaining the commands aviable. """
 
     user = update.effective_chat.first_name
     help_message = '''
@@ -56,13 +57,16 @@ Un cop fet això t'explico tot el que em pots demanar que faci:
 
 ''' % (user)
 
-    for key in COMMANDS.keys():  # PROVAR JOINT
-        help_message += ''' 🚩 */''' + key + '''* ➡️ ''' + COMMANDS[key] + '''\n'''
+    # COMMANDS is a dict of {command : instructions} (See line 405)
+    for key in COMMANDS.keys():
+        help_message += ''' 🚩 */''' + key + \
+            '''* ➡️ ''' + COMMANDS[key] + '''\n'''
 
     send_markdown(update, context, help_message)
 
+
 def author(update, context):
-    """ Shows the authors names and info. """
+    """ Sends the user a markdown txt with the authors names and info. """
 
     info = '''
 Els meus creadors són:
@@ -74,7 +78,9 @@ Els meus creadors són:
 
     send_markdown(update, context, info)
 
+
 def go(update, context):
+    """ Given a destination (str) as an argument, starts the user's journey to reach the chosen destination. """
     """ Starts the user's journey to reach the choosen destination specified after /go. """
 
     global map
@@ -85,11 +91,13 @@ def go(update, context):
         message = str(' '.join(context.args))
 
         destination = guide.address_coord(message)  # (lat, long)
+        if destination == None:
+            raise dstError
+
         directions = guide.get_directions(map, location, destination)  # dict
 
         # Save vars in user dictionary
         store(context, message, destination, directions)
-
 
         send_photo(update, context, directions)
         send_first_text(update, context, directions)
@@ -98,9 +106,13 @@ def go(update, context):
         print(traceback.format_exc())
         locErr(update, context)
 
-    except Exception:
+    except dstError:
         print(traceback.format_exc())
         dstErr(update, context)
+
+    except Exception:
+        print(traceback.format_exc())
+
 
 def zoom(update, context):
     """ Sends a map with only the actual checkpoint and the path to reach the two folowing ones. """
@@ -113,13 +125,14 @@ def zoom(update, context):
 
         end = check+3 if check+3 < n else n-1
 
-        zoom_dir = directions[check:end] # zoomed/chopped directions
+        zoom_dir = directions[check:end]  # zoomed/chopped directions
 
         send_photo(update, context, zoom_dir)
 
     except Exception:
         print(traceback.format_exc())
         zoomErr(update, context)
+
 
 def cancel(update, context):
     """ Stops the current user's journey. """
@@ -131,6 +144,7 @@ def cancel(update, context):
     del context.user_data['directions']
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
+
 
 def jump(update, context):
     """ It's a debugging command that simulates an user's progress. """
@@ -152,9 +166,20 @@ def jump(update, context):
     context.user_data['test'] = True  # bool to know if we are testing
     where(update, context)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-#--------------------------------- Errors --------------------------------------
+# --------------------------------- Errors --------------------------------------
+
+
+class Error(Exception):
+    """ Base class for other exceptions """
+    pass
+
+
+class dstError(Error):
+    """ Raised when address returned from guide.address_coord() is None """
+    pass
+
 
 def locErr(update, context):
     locErr = '''
@@ -164,6 +189,7 @@ Potser t'hauries de repassar les meves opcions amb */help*...
 '''
     send_markdown(update, context, locErr)
 
+
 def dstErr(update, context):
     dstErr = '''
 No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
@@ -171,6 +197,7 @@ No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
 Prova l'estructura */go* _Lloc, Localitat, País_
 '''
     send_markdown(update, context, dstErr)
+
 
 def zoomErr(update, context):
     zoomErr = '''
@@ -180,9 +207,11 @@ Utilitza la comanda */go* _destinació_ per començar la ruta.
 '''
     send_markdown(update, context, zoomErr)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-#------------------------------- Messages --------------------------------------
+# ------------------------------- Messages --------------------------------------
+
+
 def send_photo(update, context, chopped_dir):
     """ Generates, saves, sends, and deletes an image of journey """
 
@@ -199,6 +228,7 @@ def send_photo(update, context, chopped_dir):
 
     os.remove(user_id + '.png')
 
+
 def send_first_text(update, context, directions):
     """ Sends the first text message that the user will recive when starts a journey. """
 
@@ -208,6 +238,7 @@ Comença al *Checkpoint #1*:
 ''' % (directions[0]['next_name'])
 
     send_markdown(update, context, info)
+
 
 def send_mid_text(update, context, check):
     """ Sends text from middle checkpoints. """
@@ -221,11 +252,13 @@ Molt bé: has arribat al *Checkpoint %d*!
     info += angle(directions, check)
     info += meters(directions, check)
 
-
     if directions[check]['next_name'] is not None:
-        info += ''' per ''' + directions[check]['next_name'] + ''' per arribar al *Checkpoint %d*''' % (check+1)
+        info += ''' per ''' + \
+            directions[check]['next_name'] + \
+                ''' per arribar al *Checkpoint %d*''' % (check+1)
 
     send_markdown(update, context, info)
+
 
 def send_markdown(update, context, info):
     """ Sends a message containing the text info in markdown format. """
@@ -235,9 +268,10 @@ def send_markdown(update, context, info):
         text=info,
         parse_mode=telegram.ParseMode.MARKDOWN)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-#----------------------------- Aux functions -----------------------------------
+# ----------------------------- Aux functions -----------------------------------
+
 
 def store(context, message, destination, directions):
     """ Defines and stores the essential user data at the start of a journey. """
@@ -246,6 +280,7 @@ def store(context, message, destination, directions):
     context.user_data['destination'] = destination
     context.user_data['directions'] = directions
     context.user_data['checkpoint'] = 0  # Create pair {'checkpoint' : int}
+
 
 def end_route(update, context):
     """ Sends the last text message that the user will recive and stops the journey when the user finishes it. """
@@ -258,10 +293,11 @@ Has arribat a %s.
 Ha estat un plaer guiar-te fins aquí. Que passis un bon dia 😁
 
 (Pots continuar desplaçant-te amb la comanda */go*)
-''' %(user, str(address))
+''' % (user, str(address))
 
     send_markdown(update, context, info)
     cancel(update, context)
+
 
 def angle(directions, check):
     """ Returns a markdown string explaining the next direction that the user should take. """
@@ -279,7 +315,6 @@ def angle(directions, check):
     elif 112.5 <= a <= 157.5 or -202.5 <= a <= -157.5:
         return '''Gira pronunciadament a la dreta '''
 
-
     elif 202.5 <= a <= 247.5 or -67.5 <= a <= -22.5:
         return '''Gira lleugerament a l'esquerra '''
     elif 247.5 <= a <= 292.5 or -112.5 <= a <= -67.5:
@@ -289,12 +324,14 @@ def angle(directions, check):
 
     return '''Segueix recte '''
 
+
 def meters(directions, check):
     """ Returns a markdown message with the amount of meters that the user should travel. """
 
     try:
         if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
-            meters = '''i avança ''' + str(round(directions[check]['length'])) + ''' metres'''
+            meters = '''i avança ''' + \
+                str(round(directions[check]['length'])) + ''' metres'''
         else:
             print("no lenght")
 
@@ -302,6 +339,7 @@ def meters(directions, check):
 
     except Exception:
         print(traceback.format_exc())
+
 
 def init_map(city):
     """ Downloads and saves the city map, if it already exists only loads it. """
@@ -315,9 +353,10 @@ def init_map(city):
         guide.save_graph(map, city + "_map")
         print("downloaded!")
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-#-------------------------- Location functions ---------------------------------
+# -------------------------- Location functions ---------------------------------
+
 
 def where(update, context):
     """ Invokes the corresponding function if it's invoked automaticaly, if changes the current user location, or if we use jump command while debugging.  """
@@ -328,6 +367,7 @@ def where(update, context):
     else:
         testing_where(update, context)
 
+
 def regular_where(update, context):
     """ Is invoked automaticaly if the user current location changes and actualizes it in our data base. """
 
@@ -337,11 +377,13 @@ def regular_where(update, context):
 
     common_where(update, context, loc)
 
+
 def testing_where(update, context):
     """ Is invoked by the admin to debug and simulates the regular_where. """
 
     loc = context.user_data['location']
     common_where(update, context, loc)
+
 
 def common_where(update, context, loc):
     """ Sends a message with new instructions to the user if he has advenced to another checkpoint. """
@@ -358,25 +400,24 @@ def common_where(update, context, loc):
     if nearest_dist <= distance:  # user near next checkpoint
         next_checkpoint(update, context, nearest_check, directions)
 
+
 def next_checkpoint(update, context, nearest_check, directions):
     """ Sends the message with the instructions to find the folowing checkpoint, in directions, to nearest_check. """
 
     nc = nearest_check
     last = len(directions) - 1
-    if nc == last: # last node
+    if nc == last:  # last node
         end_route(update, context)
 
     else:
         context.user_data['checkpoint'] = nc
         send_photo(update, context, directions[nc:])
         send_mid_text(update, context, nc)
-        
-#-------------------------------------------------------------------------------
 
+# -------------------------------------------------------------------------------
 
 
 # Commands and handlers:
-
 COMMANDS = {
     'start': "inicia la conversa amb mi.",
     'help': "et torno a oferir aquesta ajuda sobre les meves comandes disponibles els cops que necessitis.",
