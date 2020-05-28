@@ -80,8 +80,7 @@ Els meus creadors són:
 
 
 def go(update, context):
-    """ Given a destination (str) as an argument, starts the user's journey to reach the chosen destination. """
-    """ Starts the user's journey to reach the choosen destination specified after /go. """
+    """ Given a destination (str) as an argument of the command, starts the user's shortest journey to reach the chosen destination from current location. """
 
     global map
 
@@ -90,11 +89,13 @@ def go(update, context):
 
         message = str(' '.join(context.args))
 
-        destination = guide.address_coord(message)  # (lat, long)
+        # destination is a tuple (lat, long)
+        destination = guide.address_coord(message)
         if destination == None:
             raise dstError
 
-        directions = guide.get_directions(map, location, destination)  # dict
+        # directions is a list of dicts
+        directions = guide.get_directions(map, location, destination)
 
         # Save vars in user dictionary
         store(context, message, destination, directions)
@@ -102,40 +103,43 @@ def go(update, context):
         send_photo(update, context, directions)
         send_first_text(update, context, directions)
 
-    except KeyError:  # any location has been shared
+    except KeyError:  # any location has been shared (bad use of /go by user)
         print(traceback.format_exc())
         locErr(update, context)
 
-    except dstError:
+    except dstError:  # could not find the destination (user's or osmnx fault)
         print(traceback.format_exc())
         dstErr(update, context)
 
-    except Exception:
+    except Exception:  # other general exceptions (This should never happen)
         print(traceback.format_exc())
 
 
 def zoom(update, context):
-    """ Sends a map with only the actual checkpoint and the path to reach the two folowing ones. """
+    """ Sends an image with of the path from current checkpoint to next 2 checkpoints. """
 
     try:
-        check = context.user_data['checkpoint']
-        directions = context.user_data['directions']
+        check = context.user_data['checkpoint']  # KeyError if dict empty
+        directions = context.user_data['directions']  # KeyError if dict empty
 
         n = len(directions)
 
-        end = check+3 if check+3 < n else n-1
+        end = check+3 if check+3 < n else n-1  # last checkpoint to show
 
         zoom_dir = directions[check:end]  # zoomed/chopped directions
 
         send_photo(update, context, zoom_dir)
 
-    except Exception:
+    except KeyError:  # raised when no journey has been started (dict is empty)
         print(traceback.format_exc())
         zoomErr(update, context)
 
+    except Exception:  # other general exceptions (This should never happen)
+        print(traceback.format_exc())
+
 
 def cancel(update, context):
-    """ Stops the current user's journey. """
+    """ Cancels the current user's journey and resets user's journey data. """
 
     user = update.effective_chat.first_name
     print("canceled by", user)
@@ -147,12 +151,14 @@ def cancel(update, context):
 
 
 def jump(update, context):
-    """ It's a debugging command that simulates an user's progress. """
+    """ Debugging command. Simulates user's progress.
+    Given an argument n (int) changes the location of user to a point near n-th checkpoint from current checkpoint. """
 
-    n = int(context.args[0])
+    n = int(context.args[0])  # n could be negative(< 0) (then, jumps back)
     c = context.user_data['checkpoint']
     d = context.user_data['directions']
 
+    # Check d (directions) limits:
     if len(d)-1 < c+n:
         c = len(d)-1
         n = 0
@@ -160,15 +166,15 @@ def jump(update, context):
         c = 0
         n = 0
 
-    src = context.user_data['directions'][c+n]['src']
-    next = (src[0] - 0.0001, src[1] - 0.0001)
-    context.user_data['location'] = next
-    context.user_data['test'] = True  # bool to know if we are testing
+    next_c = context.user_data['directions'][c+n]['src']  # next n-th checkpoint
+    p_near = (src[0] - 0.0001, src[1] - 0.0001)  # point near next_c
+    context.user_data['location'] = p_near
+    context.user_data['test'] = True  # True for testing mode (see where() )
     where(update, context)
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-# --------------------------------- Errors --------------------------------------
+# --------------------------------- Errors -------------------------------------
 
 
 class Error(Exception):
@@ -182,6 +188,8 @@ class dstError(Error):
 
 
 def locErr(update, context):
+    """ Sends a markdown text with the issue to the user. (see go() ). """
+
     locErr = '''
 Necessito saber la teva *ubicació en directe*!
 
@@ -191,6 +199,8 @@ Potser t'hauries de repassar les meves opcions amb */help*...
 
 
 def dstErr(update, context):
+    """ Sends a markdown text with the issue to the user. (see go() ). """
+
     dstErr = '''
 No em dones prou informacio! No sé on vols anar🤷🏼‍♂️
 
@@ -200,6 +210,8 @@ Prova l'estructura */go* _Lloc, Localitat, País_
 
 
 def zoomErr(update, context):
+    """ Sends a markdown text with the issue to the user. (see zoom() ). """
+
     zoomErr = '''
 No has iniciat cap trajecte!
 
@@ -207,9 +219,9 @@ Utilitza la comanda */go* _destinació_ per començar la ruta.
 '''
     send_markdown(update, context, zoomErr)
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-# ------------------------------- Messages --------------------------------------
+# ------------------------------- Messages -------------------------------------
 
 
 def send_photo(update, context, chopped_dir):
