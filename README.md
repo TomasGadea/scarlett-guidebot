@@ -73,12 +73,18 @@ python3 bot.py
 ![2nd step](2nd-step.png)
 
 * **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
-![3rd step_1](2nd-step.png)
-During the route Scarlett will provide you of actualizations of this type:
-![3rd step_2](2nd-step.png)
+`tomas ho hauries de fer tu perque queda molt feo una foto desde masquefa``![3rd step_1](2nd-step.png)`
+During the route Scarlett will provide you updates of this type:
+![3rd step_2](3rd-step_2.png)
 If you don't see very well the map you can use `/zoom`:
-![3rd step_3](2nd-step.png)
+![3rd step_3](3rd-step_3.png)
 
+### Running the tests
+
+To run tests with the bot you must follow the same steps of the normal use, but instead of walking or moving yourself you can use `/jump x` to move you `x` nodes:
+![Tests 1](Tests_1.png)
+Also you can go back:
+![Tests 2](Tests_2.png)
 
 ```
 ^^^^^
