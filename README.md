@@ -61,7 +61,7 @@ pip3 install python-telegram-bot
 pip3 install numpy
 ```
 
-## Running the tests
+## Usage
 
 To run the bot you must follow these steps:
 
@@ -69,8 +69,15 @@ To run the bot you must follow these steps:
 ```
 python3 bot.py
 ```
-* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation and ask Scarlett for her commands.
+* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
 ![2nd step](2nd-step.png)
+
+* **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
+![3rd step_1](2nd-step.png)
+During the route Scarlett will provide you of actualizations of this type:
+![3rd step_2](2nd-step.png)
+If you don't see very well the map you can use `/zoom`:
+![3rd step_3](2nd-step.png)
 
 
 ```
