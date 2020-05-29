@@ -73,7 +73,7 @@ python3 bot.py
 ![2nd step](2nd-step.png)
 
 * **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
-`tomas ho hauries de fer tu perque queda molt feo una foto desde masquefa``![3rd step_1](2nd-step.png)`
+![3rd step_1](2nd-step.png)
 During the route Scarlett will provide you updates of this type:
 ![3rd step_2](3rd-step_2.png)
 If you don't see very well the map you can use `/zoom`:
