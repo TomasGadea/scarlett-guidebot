@@ -53,14 +53,14 @@ To use the bot you must follow these steps:
 python3 bot.py
 ```
 * **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
-<center><img src='2nd-step.png'></center>
+<center><img src='2nd_step.png'></center>
 
 * **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your destination with `/go destination`.
-<center><img src='3rd-step_1.png'></center>
+<center><img src='3rd_step.png'></center>
 
 * **FOURTH STEP** - *while moving*
 During the route Scarlett will provide you updates of this type:
-<center><img src='4th-step_1.png'></center>
+<center><img src='4th_step.png'></center>
 Their format is:
   * Your current checkpoint.
   * The next direction instruction, described by the following graphic:
@@ -68,14 +68,14 @@ Their format is:
   * The distance between you and the next checkpoint and the street that where you should do it.
 
   If you don't see very well the map you can use `/zoom`:
-<center><img src='4th-step_2.png'></center>
+<center><img src='zoom.png'></center>
 
 ### Developer tools
 
 To run tests with the bot you must follow the same steps of the normal use, but instead of walking or moving yourself you can use `/jump x` to move you `x` nodes:
-![Tests 1](Tests_1.png)
+![Tests 1](jump5.png)
 Also you can go back:
-![Tests 2](Tests_2.png)
+![Tests 2](jump-3.png)
 
 ## Authors
 Tomás Gadea Alcaide i Pau Matas Albiol
