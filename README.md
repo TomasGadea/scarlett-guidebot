@@ -24,7 +24,7 @@ If you are using macOS you will need to install [brew](https://brew.sh) in your 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
-To use the bot you will need `Telegram` app and an acount. It is available in [Play Store](https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ca), [App Store](https://apps.apple.com/es/app/telegram-messenger/id686449807) or in [Telegram's web](https://telegram.org).
+To use the bot you will need `Telegram` app and an acount. It is available in [Play Store](https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ca), [App Store](https://apps.apple.com/es/app/telegram-messenger/id686449807) or in [Telegram's website](https://telegram.org).
 
 ### Installing
 
