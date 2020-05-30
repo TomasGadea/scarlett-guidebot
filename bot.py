@@ -270,7 +270,7 @@ def send_first_text(update, context, directions):
     starts a journey. """
 
     info = '''
-Comença al *Checkpoint #1*:
+Comença al *Checkpoint 1*:
     %s
 ''' % (directions[0]['next_name'])
 
