@@ -169,6 +169,7 @@ def cancel(update, context):
     del context.user_data['directions']
     del context.user_data['destination']
     context.user_data['checkpoint'] = 0
+    context.user_data['test'] = False
 
 
 def jump(update, context):
