@@ -55,7 +55,7 @@ python3 bot.py
 * **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
 ![2nd step](2nd-step.png)
 
-* **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
+* **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your destination with `/go destination`.
 ![3rd step_1](3rd-step_1.png)
 
 * **FOURTH STEP** - *while moving*
