@@ -19,51 +19,34 @@ You will need to have `python3` and `pip3` updated. Check it with:
 pip3 install --upgrade pip3
 pip3 install --upgrade python3
 ```
-If you are using macOS you will need to install [brew](https://brew.sh) in your enviroment using:
+If you are using macOS you will need to install [brew](https://brew.sh) in your environment using:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
+To use the bot you will need `Telegram` app and an acount. It is available in [Play Store](https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ca), [App Store](https://apps.apple.com/es/app/telegram-messenger/id686449807) or in [Telegram's web](https://telegram.org).
+
 ### Installing
 
-All the requisites are explained in `requirements.txt`.
+The libraries needed in this bot and their usage on it are:
+* **networkx** used for graph manipulation.
+* **osmnx** used for getting and treat with geographic graphs.
+if you are using linux you only need.
+* **haversine** used for calculating coordinates distances.
+* **staticmap** used for drawing maps.
+* **python-telegram-bot** used for developing a telegram bot interface.
+* **numpy** used for mathematical calcules.
 
-The required libraries and their installation commands are:
+To install all the libraries used in this bot you can execute the next command:
+```
+pip3 install -r requirements.txt
+```
 
-* **networkx** used for graph manipulation:
-```
-pip3 install networkx
-```
-* **osmnx** used for getting and treat with geographic graphs:
-```
-brew install spatialindex
-pip3 install osmnx
-```
-if you are using linux you only need:
-```
-apt install libspatialindex-dev
-pip3 install osmnx
-```
-* **haversine** used for calculating coordinates distances:
-```
-pip3 install haversine
-```
-* **staticmap** used for drawing maps:
-```
-pip3 install staticmap
-```
-* **python-telegram-bot** used for developing a telegram bot interface:
-```
-pip3 install python-telegram-bot
-```
-* **numpy** used for mathematical calcules:
-```
-pip3 install numpy
-```
+If you have problems with it you can install the libraries one by one with `pip3 install` followed by the library name.
 
 ## Usage
 
-To run the bot you must follow these steps:
+To use the bot you must follow these steps:
 
 * **FIRST STEP** - *run bot module* - Keep the module running, some comments and errors will be shown:
 ```
@@ -74,17 +57,29 @@ python3 bot.py
 
 * **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
 ![3rd step_1](3rd-step_1.png)
-During the route Scarlett will provide you updates of this type:
-![3rd step_2](3rd-step_2.png)
-If you don't see very well the map you can use `/zoom`:
-![3rd step_3](3rd-step_3.png)
 
-### Running the tests
+* **FOURTH STEP** - *while moving*
+During the route Scarlett will provide you updates of this type:
+![4th-step_1](4th-step_1.png)
+Their format is:
+  * Your current checkpoint.
+  * The next direction instruction, described by the following graphic:
+  ![angles](angles.png)
+  * The distance between you and the next checkpoint and the street that where you should do it.
+
+  If you don't see very well the map you can use `/zoom`:
+![4th-step_2](4th-step_2.png)
+
+### Developer tools
 
 To run tests with the bot you must follow the same steps of the normal use, but instead of walking or moving yourself you can use `/jump x` to move you `x` nodes:
 ![Tests 1](Tests_1.png)
 Also you can go back:
 ![Tests 2](Tests_2.png)
+
+## Authors
+Tomás Gadea Alcaide i Pau Matas Albiol
+GCED, UPC, 2020
 
 ```
 ^^^^^
