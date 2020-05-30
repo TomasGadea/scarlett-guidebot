@@ -53,22 +53,22 @@ To use the bot you must follow these steps:
 python3 bot.py
 ```
 * **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
-<center><img src='2nd-step.png' style="zoom:50%;"></center>
+<center><img src='2nd-step.png'></center>
 
 * **THIRD STEP** - *start the journey* - After sharing your localization with Scarlett you can give him your destination with `/go destination`.
-<center><img src='3rd-step_1.png' style="zoom:50%;"></center>
+<center><img src='3rd-step_1.png'></center>
 
 * **FOURTH STEP** - *while moving*
 During the route Scarlett will provide you updates of this type:
-<center><img src='4th-step_1.png' style="zoom:50%;"></center>
+<center><img src='4th-step_1.png'></center>
 Their format is:
   * Your current checkpoint.
   * The next direction instruction, described by the following graphic:
-  <center><img src='angles.png' style="zoom:50%;"></center>
+  <center><img src='angles.png'></center>
   * The distance between you and the next checkpoint and the street that where you should do it.
 
   If you don't see very well the map you can use `/zoom`:
-<center><img src='4th-step_2.png' style="zoom:50%;"></center>
+<center><img src='4th-step_2.png'></center>
 
 ### Developer tools
 
