@@ -1,5 +1,5 @@
-############################## SCARLETT-GUIDEBOT ###############################
-#!/usr/bin/env python
+############################## SCARLETT-GUIDEBOT #########################
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """ This is the python script for Scarlett-guidebot: A telegram-based bot that
@@ -27,7 +27,7 @@ __email__ = "paumatasalbi@gmail.com and 01tomas.gadea@gmail.com"
 __status__ = "Production"
 
 
-# ----------------------------- Initialization ---------------------------------
+# ----------------------------- Initialization ---------------------------
 
 # Constants:
 city = "Barcelona"
@@ -44,7 +44,7 @@ updater.start_polling()
 
 # ------------------------------------------------------------------------------
 
-# ------------------------------- Commands -------------------------------------
+# ------------------------------- Commands -------------------------------
 
 
 def start(update, context):
@@ -111,7 +111,7 @@ def go(update, context):
 
         # destination is a tuple (lat, long)
         destination = guide.address_coord(message)
-        if destination == None:
+        if destination is None:
             raise dstError
 
         # directions is a list of dicts
@@ -145,7 +145,7 @@ def zoom(update, context):
 
         n = len(directions)
 
-        end = check+3 if check+3 < n else n-1  # last checkpoint to show
+        end = check + 3 if check + 3 < n else n - 1  # last checkpoint to show
 
         zoom_dir = directions[check:end]  # zoomed/chopped directions
 
@@ -182,14 +182,14 @@ def jump(update, context):
     d = context.user_data['directions']
 
     # Check d (directions) limits:
-    if len(d)-1 < c+n:
-        c = len(d)-1
+    if len(d) - 1 < c + n:
+        c = len(d) - 1
         n = 0
-    elif c+n < 0:
+    elif c + n < 0:
         c = 0
         n = 0
 
-    next_c = context.user_data['directions'][c+n]['src']  # next n-th checkpoint
+    next_c = context.user_data['directions'][c + n]['src']  # next n-th check
     p_near = (next_c[0] - 0.0001, next_c[1] - 0.0001)  # point near next_c
     context.user_data['location'] = p_near
     context.user_data['test'] = True  # True for testing mode (see where() )
@@ -197,7 +197,7 @@ def jump(update, context):
 
 # ------------------------------------------------------------------------------
 
-# --------------------------------- Errors -------------------------------------
+# --------------------------------- Errors -------------------------------
 
 
 class Error(Exception):
@@ -244,7 +244,7 @@ Utilitza la comanda */go* _destinació_ per començar la ruta.
 
 # ------------------------------------------------------------------------------
 
-# ------------------------------- Messages -------------------------------------
+# ------------------------------- Messages -------------------------------
 
 
 def send_photo(update, context, chopped_dir):
@@ -294,13 +294,14 @@ Molt bé: has arribat al *Checkpoint %d*!
         info += ''' per ''' + \
             directions[check]['next_name']
 
-    info += ''' per arribar al *Checkpoint %d*''' % (check+1)
+    info += ''' per arribar al *Checkpoint %d*''' % (check + 1)
 
     send_markdown(update, context, info)
 
 
 def send_markdown(update, context, info):
-    """ Sends a message containing the given text (info) in markdown format. """
+    """ Sends a message containing the given text (info) in markdown format.
+    """
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -309,7 +310,7 @@ def send_markdown(update, context, info):
 
 # ------------------------------------------------------------------------------
 
-# ----------------------------- Aux functions ----------------------------------
+# ----------------------------- Aux functions ----------------------------
 
 
 def store(context, message, destination, directions):
@@ -351,7 +352,7 @@ def angle(directions, check):
     else:
         a = directions[check]['angle']
 
-    if a == None:
+    if a is None:
         return '''Segueix '''
 
         # Divide the 360º circumference in 8 sections. (see Readme.md)
@@ -378,7 +379,8 @@ def meters(directions, check):
     should travel. """
 
     meters = '''i avança '''
-    if 'lenght' not in directions[check] or directions[check]['lenght'] != None:
+    if not ('lenght' in directions[check] or
+            directions[check]['lenght'] is None):
         meters += str(round(directions[check]['length'])) + ''' metres'''
 
     return meters
@@ -400,7 +402,7 @@ def init_map(city):
 
 # ------------------------------------------------------------------------------
 
-# -------------------------- Location functions --------------------------------
+# -------------------------- Location functions --------------------------
 
 
 def where(update, context):
@@ -421,8 +423,8 @@ def regular_where(update, context):
     user's dict. """
 
     message = update.edited_message if update.edited_message else update.message
-    loc = context.user_data['location'] = (
-        message.location.latitude, message.location.longitude)
+    loc = context.user_data['location'] = (message.location.latitude,
+                                           message.location.longitude)
 
     common_where(update, context, loc)
 
@@ -442,7 +444,8 @@ def common_where(update, context, loc):
     check = context.user_data['checkpoint']
     directions = context.user_data['directions']
 
-    # Find nearest checkpoint to the user. Could be any checkpoint in the whole journey:
+    # Find nearest checkpoint to the user. Could be any checkpoint in the whole
+    # journey:
     # Create a list with all distances from user to each checkpoint:
     dist_list = [guide.dist(loc, section['src']) for section in directions]
     # Get checkpoint that minimizes the distance:
@@ -497,4 +500,4 @@ dispatcher.add_handler(CommandHandler('zoom', zoom))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 
 
-################################################################################
+##########################################################################
