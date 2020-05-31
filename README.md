@@ -1,6 +1,7 @@
 # Scarlett guidebot
 
-One Paragraph of project description goes here
+<img src="intro_meme.jpg" width=400>
+
 
 ## Getting Started
 
