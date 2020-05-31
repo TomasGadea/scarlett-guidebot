@@ -46,7 +46,7 @@ If you have problems with it you can install the packages one by one with `pip3 
 
 ## Usage
 
-**Note** : This bot is configured to work with _**Barcelona**_ street network by default. The city can be changed in the bot.py code
+**Note** : This bot is configured to work with _**Barcelona**_ street network by default. The city can be changed in the bot.py code.
 
 To use the bot you must follow these steps:
 
