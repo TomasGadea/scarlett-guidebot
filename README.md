@@ -65,7 +65,7 @@ As you make progress in the route Scarlett will provide you updates of this type
         * Next steps to achieve the following checkpoint.
 <img src="4th_step.png" width=500>
 
-The steps to take are divided in the turn you must make followed by the distance you must travel. The turn can be one of these eight, depending on the relative angle of the street:
+The steps to take are divided in the turn you must make followed by the distance you must travel. The turn can be one of these seven, depending on the relative angle of the street:
 
 <img src="angles.png" width=350>
 
