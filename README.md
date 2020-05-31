@@ -1,6 +1,6 @@
 # Scarlett guidebot
 
-<img src="intro_meme.jpg" width=400>
+<center><img src="intro_meme.jpg"></center>
 
 
 ## Getting Started
