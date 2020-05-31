@@ -8,8 +8,8 @@ an efficient treatement of these graphs. The module is mostly based on osmnx and
 networkx packages.
 
 Eventhough this module has been built to be perfectly suitable with the
-bot module, it works under the hood. This means it is not directly related with
-the bot and could be used on multiple purposes. """
+bot.py module, it works under the hood. This means it is not directly related with
+the telegram bot and could be used on multiple purposes. """
 
 
 import pickle  # standard library
