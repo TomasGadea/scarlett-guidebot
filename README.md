@@ -6,11 +6,10 @@ One Paragraph of project description goes here
 
 This project is divided in two parts:
 
-* `guide.py` provides all the geographic operations on the graphs representing maps. These operations go from getting the graphs to getting the coordinates of an address.
+* `guide.py` : Provides all the geographic operations, functions and algorithms applied to graphs that represent city networks. These operations go from downloading the graphs to getting the coordinates of an address, going through algorithmical computations as a graph shortest paths.
 
-* `bot.py` provides all the telegram API. It's job is to guide the users to their destinations reading commands and using guide.
+* `bot.py` : Provides all the code needed for the interaction between the telegram API, the users of the bot, and the bot itself. Based on the guide.py module, bot.py treats user requests at a high level of abstraction, without going into graph algorithms at all.
 
-Although guide is used in bot, the libraries used on one module are not used in the other one because of they are focused in different utilities.
 
 ### Prerequisites
 
@@ -19,63 +18,73 @@ You will need to have `python3` and `pip3` updated. Check it with:
 pip3 install --upgrade pip3
 pip3 install --upgrade python3
 ```
-If you are using macOS you will need to install [brew](https://brew.sh) in your environment using:
+If you are using macOS you will need to install the package manager [brew](https://brew.sh) in your environment using:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
-To use the bot you will need `Telegram` app and an acount. It is available in [Play Store](https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ca), [App Store](https://apps.apple.com/es/app/telegram-messenger/id686449807) or in [Telegram's website](https://telegram.org).
+To use the bot you will need a `Telegram` account as well as the `Telegram` app. It is available in [Play Store](https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ca), [App Store](https://apps.apple.com/es/app/telegram-messenger/id686449807) or in [Telegram's website](https://telegram.org).
 
 ### Installing
 
-The libraries needed in this bot and their usage on it are:
-* **networkx** used for graph manipulation.
-* **osmnx** used for getting and treat with geographic graphs.
-if you are using linux you only need.
-* **haversine** used for calculating coordinates distances.
-* **staticmap** used for drawing maps.
-* **python-telegram-bot** used for developing a telegram bot interface.
-* **numpy** used for mathematical calcules.
+The packages needed for this bot are:
+* **networkx** : Used for graph manipulation.
+* **osmnx** : Used to deal with city networks.
+ ¿¿ wtf _if you are using linux you only need._ ??
+* **haversine** : Used to compute distances in non euclidean spaces, specifically between two points in the Earth represented with geographic coordinates.
+* **staticmap** : Used to draw or plot city maps.
+* **python-telegram-bot** : Used to develop a telegram bot interface.
+* **numpy** : Used for mathematical computations.
 
-To install all the libraries used in this bot you can execute the next command:
+To install all the packages used in this bot you can execute the following command:
 ```
 pip3 install -r requirements.txt
 ```
 
-If you have problems with it you can install the libraries one by one with `pip3 install` followed by the library name.
+If you have problems with it you can install the packages one by one with `pip3 install` followed by the package name.
 
 ## Usage
 
 To use the bot you must follow these steps:
 
-* **FIRST STEP** - *run bot module* - Keep the module running, some comments and errors will be shown:
+* **FIRST STEP** - *run bot module* - Keep the module running, some comments and errors will be shown to the admin's terminal just to provide extra information (the bot won't crash). To run the script type and execute:
 ```
 python3 bot.py
 ```
-* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](https://t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
-<center><img src='2nd_step.png'></center>
+* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett's telegram link](https://t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
+<img src="2nd_step.png">
 
-* **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your destination with `/go destination`.
-<center><img src='3rd_step.png'></center>
+* **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your wanted destination with `/go destination`.
+<img src="3rd_step.png" width=350>
 
-* **FOURTH STEP** - *while moving*
-During the route Scarlett will provide you updates of this type:
-<center><img src='4th_step.png'></center>
-Their format is:
-  * Your current checkpoint.
-  * The next direction instruction, described by the following graphic:
-  <center><img src='angles.png'></center>
-  * The distance between you and the next checkpoint and the street that where you should do it.
+* **FOURTH STEP** - *in the trip* -
+As you make progress in the route Scarlett will provide you updates of this type:
+    * Image of the path
+    * Information text:
+        * Your current checkpoint.
+        * Next steps to achieve the following checkpoint.
+<img src="4th_step.png" width=350>
 
-  If you don't see very well the map you can use `/zoom`:
-<center><img src='zoom.png'></center>
+The steps to take are divided in the turn you must make followed by the distance you must travel. The turn can be one of these eight, depending on the relative angle of the street:
+<img src="angles.png" width=350>
+
+If you can't see clearly the map you can use `/zoom` in order to focus on the following immediate checkpoints:
+
+<img src="zoom.png" width=350>
+
+Once you arrive to the last checkpoint, your destination, the journey will automatically finish and you can ask for another route again. You will recieve a message like this:
+
+<img src="end_message.png" width=350>
 
 ### Developer tools
 
-To run tests with the bot you must follow the same steps of the normal use, but instead of walking or moving yourself you can use `/jump x` to move you `x` nodes:
-![Tests 1](jump5.png)
-Also you can go back:
-![Tests 2](jump-3.png)
+To run tests with the bot you must follow the same steps shown for the regular usage, but instead of walking or moving yourself you can use `/jump x` to move you `x` checkpoints forward:
+
+<img src="jump5.png" width=350>
+
+Also you can go backwards:
+
+<img src="jump-3.png" width=350>
 
 ## Authors
 Tomás Gadea Alcaide i Pau Matas Albiol
