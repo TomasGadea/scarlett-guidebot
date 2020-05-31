@@ -52,7 +52,7 @@ To use the bot you must follow these steps:
 ```
 python3 bot.py
 ```
-* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
+* **SECOND STEP** - *discover Scarlett* - Go to [Scarlett](https://t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
 <center><img src='2nd_step.png'></center>
 
 * **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your destination with `/go destination`.
