@@ -1,15 +1,15 @@
-################################ GUIDE MODULE ##################################
-#!/usr/bin/env python
+# ----------------------- GUIDE MODULE -----------------------
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """ This is the python script of the guide module. This module contains all the
 functions needed to deal with city graphs, and manage the algorithms to perform
-an efficient treatement of these graphs. The module is mostly based on osmnx and
-networkx packages.
+an efficient treatement of these graphs. The module is mostly based on osmnx
+and networkx packages.
 
 Eventhough this module has been built to be perfectly suitable with the
-bot.py module, it works under the hood. This means it is not directly related with
-the telegram bot and could be used on multiple purposes. """
+bot.py module, it works under the hood. This means it is not directly related
+with the telegram bot and could be used on multiple purposes. """
 
 
 import pickle  # standard library
@@ -27,7 +27,7 @@ __email__ = "paumatasalbi@gmail.com and 01tomas.gadea@gmail.com"
 __status__ = "Production"
 
 
-# ---------------------------- Public Functions ---------------------------------
+# ---------------------------- Public Functions --------------------------
 
 
 def download_graph(place):
@@ -130,7 +130,7 @@ def address_coord(address):
 
 # -------------------------------------------------------------------------------
 
-# ---------------------------- Private Functions --------------------------------
+# ---------------------------- Private Functions -------------------------
 
 
 def _closest_node_to(graph, source_location):
@@ -148,7 +148,8 @@ def _from_path_to_directions(graph, sp_nodes, source_location,
 
     # Create edge and node lists adding the additional nodes and edges
     # such that we can reach the source_location and the destination_location
-    # from the graph nodes (from user to street and from street to destination):
+    # from the graph nodes (from user to street and from street to
+    # destination):
     edges = \
         [_edges_fist_edge(graph, sp_nodes, source_location)] + \
         ox.geo_utils.get_route_edge_attributes(graph, sp_nodes) + \
@@ -230,10 +231,11 @@ def _get_section_angle(edges, i, n):
     """ Returns the angle of the section formed by the edges i and i + 1 in the
     list of edges, if we can compute it. """
 
-    if i >= n or i <= 1 or not 'bearing' in edges[i-1] or not 'bearing' in edges[i]:
+    if i >= n or i <= 1 or not ('bearing' in edges[i - 1] and
+                                'bearing' in edges[i]):
         return None
 
-    return edges[i]['bearing'] - edges[i-1]['bearing']
+    return edges[i]['bearing'] - edges[i - 1]['bearing']
 
 
 def _get_section_dst(coord_nodes, i, n):
@@ -323,4 +325,4 @@ def _get_line_feature(i, n):
     return 'red', 4
 
 
-################################################################################
+##########################################################################
