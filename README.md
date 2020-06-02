@@ -31,7 +31,6 @@ To use the bot you will need a `Telegram` account as well as the `Telegram` app.
 The packages needed for this bot are:
 * **networkx** : Used for graph manipulation.
 * **osmnx** : Used to deal with city networks.
- ¿¿ wtf _if you are using linux you only need._ ??
 * **haversine** : Used to compute distances in non euclidean spaces, specifically between two points in the Earth represented with geographic coordinates.
 * **staticmap** : Used to draw or plot city maps.
 * **python-telegram-bot** : Used to develop a telegram bot interface.
@@ -91,44 +90,8 @@ Also you can go backwards:
 <img src="jump-3.png" width=500>
 
 ## Authors
-Tomás Gadea Alcaide i Pau Matas Albiol
+[Tomás Gadea Alcaide](https://github.com/TomasGadea) and [Pau Matas Albiol](https://github.com/PauMatas)
+
+For more information about the project, please contact us at: 01tomas.gadea@gmail.com and paumatasalbi@gmail.com
 
 GCED, UPC, 2020
-
-```
-^^^^^
-|||||
-Serio
--------------------------
-utils
-|||||
-fletxa cap abaix
-```
-
-
-
-# scarlett-guidebot
-AP2 project (GCED)
-## Commands autopep8
-
-[Source link](https://pypi.org/project/autopep8/#usage)
-
-- `autopep8` + `<filename>` : doesn't change the file, just outputs the autopep8 version in terminal.
-- `autopep8 --in-place --aggressive --aggressive` + `<filename>` :  changes the file, notice `--in-place`.
-
-## links
-- [Lliçons de bots de Telegram](https://lliçons.jutge.org/python/telegram.html)
-
-- [Lliçons de fitxers en Python](https://lliçons.jutge.org/python/fitxers-i-formats.html)
-
-- [Tutorial de NetworkX](https://networkx.github.io/documentation/stable/tutorial.html)
-
-- [Tutorial d'OSMnx](https://geoffboeing.com/2016/11/osmnx-python-street-networks/)
-
-- [github Jordi Petit](https://github.com/jordi-petit/ap2-guidebot)
-
-- [staticmap github](https://github.com/komoot/staticmap/blob/master/README.md)
-
-- [osmnx nearest nodes/edges](https://osmnx.readthedocs.io/en/stable/osmnx.html#osmnx.utils.get_nearest_node)
-
-- [† † †](https://www.youtube.com/watch?v=Vl8UIuHfbX8)
