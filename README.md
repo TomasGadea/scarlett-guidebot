@@ -52,10 +52,10 @@ To use the bot you must follow these steps:
 python3 bot.py
 ```
 * **SECOND STEP** - *discover Scarlett* - Go to [Scarlett's telegram link](https://t.me/scarlett_guidebot), start the conversation, ask Scarlett for her commands with `/help` and follow the instructions.
-<img src="2nd_step.png">
+<img src="img/2nd_step.png">
 
 * **THIRD STEP** - *start the journey* - After sharing your location with Scarlett you can give him your wanted destination with `/go destination`.
-<img src="3rd_step.png" width=500>
+<img src="img/3rd_step.png" width=500>
 
 * **FOURTH STEP** - *in the trip* -
 As you make progress in the route Scarlett will provide you updates of this type:
@@ -63,29 +63,29 @@ As you make progress in the route Scarlett will provide you updates of this type
     * Information text:
         * Your current checkpoint.
         * Next steps to achieve the following checkpoint.
-<img src="4th_step.png" width=500>
+<img src="img/4th_step.png" width=500>
 
 The steps to take are divided in the turn you must make followed by the distance you must travel. The turn can be one of these seven, depending on the relative angle of the street:
 
-<img src="angles.png" width=350>
+<img src="img/angles.png" width=350>
 
 If you can't see clearly the map you can use `/zoom` in order to focus on the following immediate checkpoints:
 
-<img src="zoom.png" width=500>
+<img src="img/zoom.png" width=500>
 
 Once you arrive to the last checkpoint, your destination, the journey will automatically finish and you can ask for another route again. You will recieve a message like this:
 
-<img src="end_message.png" width=500>
+<img src="img/end_message.png" width=500>
 
 ### Developer tools
 
 To run tests with the bot you must follow the same steps shown for the regular usage, but instead of walking or moving yourself you can use `/jump x` to move you `x` checkpoints forward:
 
-<img src="jump5.png" width=500>
+<img src="img/jump5.png" width=500>
 
 Also you can go backwards:
 
-<img src="jump-3.png" width=500>
+<img src="img/jump-3.png" width=500>
 
 ## Authors
 [Tomás Gadea Alcaide](https://github.com/TomasGadea) and [Pau Matas Albiol](https://github.com/PauMatas)
